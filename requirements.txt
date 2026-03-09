@@ -1,0 +1,28 @@
+# Desjardins CPG Pricer — Dependances (versions pinees)
+# Installer: pip install -r requirements.txt
+
+# Core
+numpy>=1.24,<2.0
+scipy>=1.11,<2.0
+pandas>=2.0,<3.0
+PyYAML>=6.0,<7.0
+openpyxl>=3.1,<4.0
+
+# Web UI
+flask>=3.0,<4.0
+
+# Optionnel — Bermudan swaption (necessite QuantLib compile)
+# QuantLib>=1.30
+
+# Optionnel — Acces SQL (QRM Staging Desjardins)
+# Decommenter les 2 lignes ci-dessous pour activer le bouton "Charger depuis QRM Staging"
+# Necessite aussi ODBC Driver 17 for SQL Server (installe sur les postes Desjardins)
+# SQLAlchemy>=2.0,<3.0
+# pyodbc>=5.0
+
+# Optionnel — Bloomberg Terminal
+# blpapi
+
+# Dev / Tests
+# pytest>=8.0
+# ruff

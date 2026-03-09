@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pricer Épargne à terme prorogeable — Desjardins Marchés</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Editorial+New:ital,wght@0,200;0,400;1,200;1,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)'],['$','$']],displayMath:[['\\[','\\]'],['$$','$$']],tags:'none'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+<script defer src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+<style>
+/* ─────────────────────────────────────────────────────────
+   DESIGN SYSTEM — Precision Finance × Apple Craft
+   Dark-first. Signal over noise. Every element earns its place.
+───────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+--f-display: "Editorial New", "Times New Roman", serif;
+--f-body: "Geist", -apple-system, system-ui, sans-serif;
+--f-mono: "Geist Mono", "SF Mono", ui-monospace, monospace;
+--nav-h: 52px;
+--r: 14px; --r-sm: 8px; --r-xs: 5px;
+--spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+--t-fast: 80ms; --t-mid: 200ms; --t-slow: 380ms;
+}
+
+/* DARK */
+:root, [data-theme="dark"] {
+--bg: #080a09; --bg-raised: #0d1010;
+--surface-1: rgba(255,255,255,0.045); --surface-2: rgba(255,255,255,0.07); --surface-3: rgba(255,255,255,0.10);
+--border: rgba(255,255,255,0.09); --border-hi: rgba(255,255,255,0.15);
+--text-1: #f0f4f2; --text-2: rgba(240,244,242,0.62); --text-3: rgba(240,244,242,0.36);
+--accent: #34d674; --accent-lo: rgba(52,214,116,0.12); --accent-md: rgba(52,214,116,0.22); --accent-hi: rgba(52,214,116,0.40);
+--blue: #4e9eff; --blue-lo: rgba(78,158,255,0.10);
+--amber: #f0b429; --amber-lo: rgba(240,180,41,0.10);
+--red: #f06060; --red-lo: rgba(240,96,96,0.10);
+--shadow-1: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.045);
+--shadow-2: 0 8px 32px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.06);
+--shadow-glow: 0 0 20px rgba(52,214,116,0.15);
+}
+
+/* LIGHT */
+[data-theme="light"] {
+--bg: #f7f7f5; --bg-raised: #ffffff;
+--surface-1: rgba(0,0,0,0.03); --surface-2: rgba(0,0,0,0.055); --surface-3: rgba(0,0,0,0.08);
+--border: rgba(0,0,0,0.08); --border-hi: rgba(0,0,0,0.14);
+--text-1: #0d120e; --text-2: rgba(13,18,14,0.58); --text-3: rgba(13,18,14,0.34);
+--accent: #1a7f47; --accent-lo: rgba(26,127,71,0.08); --accent-md: rgba(26,127,71,0.15); --accent-hi: rgba(26,127,71,0.30);
+--blue: #1a6fd9; --blue-lo: rgba(26,111,217,0.08);
+--amber: #a67c00; --amber-lo: rgba(166,124,0,0.08);
+--red: #c03030; --red-lo: rgba(192,48,48,0.08);
+--shadow-1: 0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.06);
+--shadow-2: 0 8px 32px rgba(0,0,0,0.10), 0 1px 0 rgba(255,255,255,0.8);
+--shadow-glow: 0 0 20px rgba(26,127,71,0.12);
+}
+
+/* ── BASE ── */
+html, body { height:100%; background:var(--bg); color:var(--text-1); font-family:var(--f-body);
+  -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; overflow:hidden;
+  transition: background var(--t-slow), color var(--t-slow); }
+body::after { content:""; position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:0.025;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+/* ── TOPBAR ── */
+#topbar { position:fixed; top:0; left:0; right:0; height:var(--nav-h); z-index:200;
+  display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:0 16px; gap:12px; }
+#topbar::before { content:""; position:absolute; inset:0;
+  background:color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--border); }
+.tb-brand { display:flex; align-items:center; gap:10px; position:relative; z-index:1; }
+.tb-logo { height:24px; width:auto; opacity:0.92; }
+.tb-wordmark { font-size:11px; font-weight:600; color:var(--text-3); letter-spacing:0.3px; white-space:nowrap; }
+.tb-wordmark b { color:var(--text-2); font-weight:600; }
+.tb-sep { width:1px; height:16px; background:var(--border-hi); margin:0 2px; }
+.tb-center { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0; }
+.tb-label { font-size:10.5px; font-weight:500; color:var(--text-3); letter-spacing:0.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:500px; }
+.tb-label strong { color:var(--accent); font-weight:600; }
+.progress-track { width:min(460px,40vw); height:3px; background:var(--surface-2); border-radius:99px; position:relative; cursor:pointer; overflow:visible; }
+.progress-fill { position:absolute; left:0; top:0; bottom:0; border-radius:99px; background:var(--accent); transition:width var(--t-slow) var(--ease-out); min-width:3px; }
+.progress-fill::after { content:""; position:absolute; right:-1px; top:50%; transform:translateY(-50%); width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent), var(--shadow-glow); }
+.progress-track:hover .progress-fill::after { transform:translateY(-50%) scale(1.3); }
+.pt-ticks { position:absolute; inset:0; pointer-events:none; }
+.pt-tick { position:absolute; top:50%; transform:translate(-50%,-50%); width:1px; height:5px; border-radius:1px; background:var(--border-hi); transition:background var(--t-mid), height var(--t-mid); }
+.pt-tick.past { background:color-mix(in srgb, var(--accent) 40%, transparent); }
+.pt-tick.active { background:var(--accent); height:7px; }
+.tb-tools { display:flex; align-items:center; gap:6px; justify-content:flex-end; position:relative; z-index:1; }
+.tb-btn { height:30px; padding:0 12px; border-radius:var(--r-xs); border:1px solid var(--border); background:var(--surface-1); color:var(--text-2); font-family:var(--f-body); font-size:11.5px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition:background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast) var(--spring), box-shadow var(--t-fast); outline:none; }
+.tb-btn:hover { background:var(--surface-2); border-color:var(--border-hi); color:var(--text-1); transform:translateY(-1px); box-shadow:var(--shadow-1); }
+.tb-btn:active { transform:translateY(0) scale(0.97); }
+.tb-btn.active { background:var(--accent-lo); border-color:var(--accent-hi); color:var(--accent); }
+.tb-btn .ico { font-size:12px; line-height:1; }
+.tb-goto { display:flex; align-items:center; gap:5px; height:30px; padding:0 10px; border-radius:var(--r-xs); border:1px solid var(--border); background:var(--surface-1); transition:border-color var(--t-fast); }
+.tb-goto:focus-within { border-color:var(--accent-hi); }
+.tb-goto label { font-size:10.5px; color:var(--text-3); font-weight:500; cursor:default; }
+.tb-goto input { width:32px; border:0; outline:0; background:transparent; font-family:var(--f-mono); font-size:11.5px; font-weight:500; color:var(--text-1); text-align:center; }
+
+/* ── DECK + SLIDE ── */
+#deck { position:fixed; inset:var(--nav-h) 0 0 0; overflow-y:scroll; scroll-snap-type:y mandatory; scroll-behavior:smooth; }
+#deck::-webkit-scrollbar { display:none; }
+.slide { min-height:calc(100dvh - var(--nav-h)); scroll-snap-align:start; display:grid; place-items:center; padding:clamp(24px,4vh,56px) clamp(16px,5vw,72px); position:relative; overflow:hidden; }
+.slide::before { content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse 65% 55% at 80% 15%, var(--accent-lo), transparent 60%), radial-gradient(ellipse 45% 40% at 10% 85%, rgba(78,158,255,0.05), transparent 55%); opacity:0; transition:opacity var(--t-slow) var(--ease-out); }
+.slide.active::before { opacity:1; }
+
+/* ── CARD ── */
+.card { width:min(1160px,96%); background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--r); padding:clamp(28px,4.5vh,54px) clamp(28px,4vw,56px); box-shadow:var(--shadow-2); position:relative; overflow:hidden; z-index:2; opacity:0; transform:translateY(18px) scale(0.993); transition:opacity 320ms var(--ease-out), transform 320ms var(--ease-out); }
+.card::before { content:""; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent 0%, var(--accent-md) 30%, var(--accent-hi) 50%, var(--accent-md) 70%, transparent 100%); }
+.slide.active .card, .slide.seen .card { opacity:1; transform:none; }
+.slide.seen .card { transition:none; }
+.card-xl { width:min(1320px,97%); }
+.card-bare { background:transparent; border:none; box-shadow:none; overflow:visible; }
+.card-bare::before { display:none; }
+
+/* ── TYPOGRAPHY ── */
+.eyebrow { display:inline-flex; align-items:center; gap:6px; font-family:var(--f-mono); font-size:10px; font-weight:600; letter-spacing:1.1px; text-transform:uppercase; color:var(--accent); margin-bottom:18px; }
+.eyebrow::before { content:""; width:14px; height:1px; background:var(--accent); flex-shrink:0; }
+.display { font-family:var(--f-display); font-weight:200; font-size:clamp(32px,3.6vw,56px); line-height:1.06; letter-spacing:-1.5px; color:var(--text-1); margin:0 0 22px; }
+.display em { font-style:italic; color:var(--accent); }
+.heading { font-size:13px; font-weight:600; color:var(--text-2); letter-spacing:-0.1px; margin:0 0 10px; }
+p { font-size:clamp(13px,1.08vw,15px); line-height:1.72; color:var(--text-2); max-width:66ch; margin:0 0 10px; }
+ul { padding-left:1em; margin:0 0 10px; list-style:none; }
+li { font-size:clamp(13px,1.08vw,15px); line-height:1.7; color:var(--text-2); position:relative; padding-left:14px; margin-bottom:4px; }
+li::before { content:""; position:absolute; left:0; top:0.64em; width:4px; height:4px; border-radius:50%; background:var(--accent); opacity:0.6; }
+strong { color:var(--text-1); font-weight:600; }
+code { font-family:var(--f-mono); font-size:0.9em; background:var(--surface-2); padding:2px 5px; border-radius:3px; color:var(--accent); }
+.divider { height:1px; background:var(--border); margin:20px 0; }
+
+/* ── LAYOUTS ── */
+.cols-2 { display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start; }
+.cols-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; align-items:start; }
+@media (max-width:880px) { .cols-2, .cols-3 { grid-template-columns:1fr; } }
+
+/* ── CALLOUTS ── */
+.note { border-radius:var(--r-sm); border:1px solid var(--border); background:var(--surface-1); padding:14px 16px; position:relative; overflow:hidden; margin:12px 0; }
+.note::before { content:""; position:absolute; left:0; inset-block:0; width:2px; background:var(--text-3); border-radius:2px 0 0 2px; }
+.note.green { border-color:var(--accent-md); background:var(--accent-lo); }
+.note.green::before { background:var(--accent); }
+.note.blue { border-color:rgba(78,158,255,0.2); background:var(--blue-lo); }
+.note.blue::before { background:var(--blue); }
+.note.amber { border-color:rgba(240,180,41,0.2); background:var(--amber-lo); }
+.note.amber::before { background:var(--amber); }
+.note.red { border-color:rgba(240,96,96,0.2); background:var(--red-lo); }
+.note.red::before { background:var(--red); }
+.note p { margin:0; max-width:none; }
+
+/* ── METRICS ── */
+.metric { border-radius:var(--r-sm); border:1px solid var(--border); background:var(--surface-1); padding:16px 18px; text-align:left; position:relative; overflow:hidden; transition:border-color var(--t-fast), background var(--t-fast); }
+.metric:hover { border-color:var(--border-hi); background:var(--surface-2); }
+.metric::after { content:""; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, var(--accent-md), transparent); }
+.metric-num { font-family:var(--f-mono); font-size:clamp(20px,2.2vw,30px); font-weight:600; color:var(--accent); line-height:1; letter-spacing:-1px; margin-bottom:5px; display:block; }
+.metric-label { font-size:11px; font-weight:500; color:var(--text-3); letter-spacing:0.2px; display:block; }
+.metrics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:14px; }
+
+/* ── PILLS ── */
+.pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:99px; border:1px solid var(--border); background:var(--surface-1); font-family:var(--f-mono); font-size:10px; font-weight:600; color:var(--text-3); letter-spacing:0.4px; }
+.pill.green { border-color:var(--accent-hi); background:var(--accent-lo); color:var(--accent); }
+.pill.blue { border-color:rgba(78,158,255,0.3); background:var(--blue-lo); color:var(--blue); }
+.pill.amber { border-color:rgba(240,180,41,0.3); background:var(--amber-lo); color:var(--amber); }
+
+/* ── FLOW ── */
+.flow { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border-radius:var(--r-sm); overflow:hidden; margin-top:20px; }
+@media(max-width:900px){.flow{grid-template-columns:1fr;}}
+.flow-step { background:var(--bg-raised); padding:18px 20px; transition:background var(--t-fast); }
+.flow-step:hover { background:color-mix(in srgb, var(--bg-raised) 80%, var(--accent-lo)); }
+.flow-num { font-family:var(--f-mono); font-size:10px; font-weight:600; color:var(--accent); margin-bottom:8px; display:block; letter-spacing:0.5px; }
+.flow-title { font-size:13px; font-weight:600; color:var(--text-1); margin-bottom:5px; }
+.flow-desc { font-size:12px; line-height:1.55; color:var(--text-3); }
+
+/* ── EQUATIONS (MathJax) ── */
+.eq { font-size:clamp(14px,1.6vw,19px); margin:12px 0; text-align:center; overflow-x:auto; }
+.eq-box { border:1px solid var(--border); border-left:3px solid var(--accent); background:var(--surface-1); border-radius:var(--r-sm); padding:14px 20px; margin:10px 0; }
+.eq-note { font-size:11px; color:var(--text-3); text-align:center; margin-top:5px; }
+
+/* ── TABLES ── */
+.tbl { width:100%; border-collapse:collapse; font-size:clamp(11px,.95vw,13.5px); margin:10px 0; }
+.tbl th { text-align:left; padding:8px 12px; font-family:var(--f-mono); font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:var(--text-3); border-bottom:2px solid var(--border); font-weight:600; }
+.tbl td { padding:9px 12px; border-bottom:1px solid var(--border); color:var(--text-2); }
+.tbl tr:last-child td { border-bottom:none; }
+.tbl td:first-child { font-weight:600; color:var(--text-1); }
+.tbl tr:hover td { background:var(--accent-lo); }
+
+/* ── PLOT ── */
+.plot { width:100%; border:1px solid var(--border); border-radius:var(--r-sm); overflow:hidden; background:var(--bg-raised); }
+
+/* ── TITLE SLIDE ── */
+.title-hero { text-align:center; max-width:900px; margin:0 auto; display:flex; flex-direction:column; align-items:center; }
+.hero-logo { height:44px; margin-bottom:28px; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.25)); }
+.hero-tag { display:flex; align-items:center; gap:10px; margin-bottom:22px; }
+.hero-tag-line { height:1px; width:40px; background:var(--accent); opacity:0.5; }
+.hero-tag-text { font-family:var(--f-mono); font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); }
+.hero-title { font-family:var(--f-display); font-weight:200; font-size:clamp(44px,6vw,82px); line-height:0.98; letter-spacing:-3.5px; color:var(--text-1); margin-bottom:22px; }
+.hero-title em { font-style:italic; color:var(--accent); }
+.hero-sub { font-size:clamp(14px,1.5vw,17px); color:var(--text-3); max-width:50ch; line-height:1.65; margin-bottom:32px; }
+.hero-chips { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.hero-chip { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:6px; border:1px solid var(--border); background:var(--surface-1); font-size:12px; font-weight:500; color:var(--text-2); transition:all var(--t-fast); }
+.hero-chip:hover { background:var(--surface-2); border-color:var(--border-hi); color:var(--text-1); }
+.hero-chip .dot { width:5px; height:5px; border-radius:50%; }
+
+/* ── BOTTOM BAR ── */
+#counter { position:fixed; bottom:14px; left:16px; z-index:150; display:flex; align-items:center; gap:8px; padding:7px 12px; border-radius:var(--r-sm); border:1px solid var(--border); background:color-mix(in srgb, var(--bg) 75%, transparent); backdrop-filter:blur(16px); box-shadow:var(--shadow-1); }
+.ctr-pos { font-family:var(--f-mono); font-size:11px; font-weight:600; color:var(--accent); }
+.ctr-div { width:1px; height:12px; background:var(--border-hi); }
+.ctr-title { font-size:11px; font-weight:500; color:var(--text-3); max-width:min(50vw,380px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#nav { position:fixed; bottom:14px; right:16px; z-index:150; display:flex; gap:6px; }
+.nav-btn { width:36px; height:36px; border-radius:var(--r-sm); border:1px solid var(--border); background:color-mix(in srgb, var(--bg) 75%, transparent); backdrop-filter:blur(16px); color:var(--text-2); font-size:14px; cursor:pointer; display:grid; place-items:center; box-shadow:var(--shadow-1); transition:background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast) var(--spring); outline:none; }
+.nav-btn:hover { background:var(--surface-2); border-color:var(--border-hi); color:var(--text-1); transform:scale(1.08); }
+.nav-btn:active { transform:scale(0.94); }
+
+/* ── TOC DRAWER ── */
+#tocDrawer { position:fixed; top:var(--nav-h); left:0; bottom:0; width:300px; z-index:180; display:flex; flex-direction:column; background:color-mix(in srgb, var(--bg) 85%, transparent); border-right:1px solid var(--border); backdrop-filter:blur(28px) saturate(170%); box-shadow:4px 0 48px rgba(0,0,0,0.3); transform:translateX(-100%); transition:transform var(--t-slow) var(--ease-out); overflow:hidden; }
+#tocDrawer.open { transform:translateX(0); }
+#tocScrim { position:fixed; inset:var(--nav-h) 0 0 0; z-index:170; background:rgba(0,0,0,0.3); opacity:0; pointer-events:none; transition:opacity var(--t-slow); }
+#tocScrim.show { opacity:1; pointer-events:auto; }
+.toc-top { padding:16px 18px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.toc-top-label { font-size:10.5px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--text-3); }
+.toc-close-btn { width:26px; height:26px; border-radius:5px; border:1px solid var(--border); background:var(--surface-1); color:var(--text-3); font-size:12px; cursor:pointer; display:grid; place-items:center; transition:all var(--t-fast); }
+.toc-close-btn:hover { background:var(--surface-2); color:var(--text-1); }
+.toc-prog { padding:12px 18px; border-bottom:1px solid var(--border); }
+.toc-prog-bar { height:3px; border-radius:99px; background:var(--surface-2); margin-bottom:7px; overflow:hidden; }
+.toc-prog-fill { height:100%; border-radius:99px; background:var(--accent); transition:width var(--t-slow) var(--ease-out); }
+.toc-prog-info { font-size:11px; color:var(--text-3); font-weight:500; }
+.toc-prog-info b { color:var(--text-2); font-weight:600; }
+.toc-filter-wrap { padding:10px 14px; border-bottom:1px solid var(--border); }
+.toc-filter { width:100%; height:32px; border-radius:var(--r-sm); border:1px solid var(--border); background:var(--surface-1); color:var(--text-1); font-family:var(--f-body); font-size:12.5px; padding:0 10px; outline:none; }
+.toc-filter::placeholder { color:var(--text-3); }
+.toc-filter:focus { border-color:var(--accent-hi); box-shadow:0 0 0 3px var(--accent-lo); }
+.toc-list { flex:1; overflow-y:auto; padding:8px; }
+.toc-list::-webkit-scrollbar { width:3px; }
+.toc-list::-webkit-scrollbar-thumb { background:var(--surface-3); border-radius:99px; }
+.toc-sec-label { font-size:9.5px; font-weight:700; letter-spacing:0.9px; text-transform:uppercase; color:var(--text-3); padding:12px 10px 4px; display:flex; align-items:center; gap:8px; }
+.toc-sec-label::after { content:""; flex:1; height:1px; background:var(--border); }
+.toc-row { display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:var(--r-sm); border:1px solid transparent; cursor:pointer; transition:all var(--t-fast); margin-bottom:1px; }
+.toc-row:hover { background:var(--surface-2); border-color:var(--border); }
+.toc-row.active { background:var(--accent-lo); border-color:var(--accent-md); }
+.toc-row-n { font-family:var(--f-mono); font-size:10px; font-weight:500; color:var(--text-3); min-width:24px; }
+.toc-row.active .toc-row-n { color:var(--accent); }
+.toc-row-dot { width:4px; height:4px; border-radius:50%; background:var(--surface-3); transition:background var(--t-mid); }
+.toc-row.active .toc-row-dot { background:var(--accent); box-shadow:0 0 6px var(--accent); }
+.toc-row.done .toc-row-dot { background:color-mix(in srgb, var(--accent) 35%, var(--text-3)); }
+.toc-row-text { font-size:12.5px; font-weight:500; color:var(--text-2); line-height:1.3; }
+.toc-row.active .toc-row-text { color:var(--text-1); font-weight:600; }
+
+/* ── SUIVI POPOVER ── */
+#suiviPop { position:fixed; top:calc(var(--nav-h) + 10px); left:50%; transform:translateX(-50%) scale(0.96) translateY(-8px); z-index:190; width:min(680px,90vw); opacity:0; pointer-events:none; transform-origin:top center; transition:opacity var(--t-mid) var(--ease-out), transform var(--t-mid) var(--ease-out); }
+#suiviPop.open { opacity:1; pointer-events:auto; transform:translateX(-50%) scale(1) translateY(0); }
+.suivi-inner { background:color-mix(in srgb, var(--bg) 82%, transparent); border:1px solid var(--border-hi); border-radius:var(--r); backdrop-filter:blur(32px) saturate(180%); box-shadow:0 24px 80px rgba(0,0,0,0.7); overflow:hidden; }
+.suivi-head { display:flex; align-items:center; justify-content:space-between; padding:14px 18px 12px; border-bottom:1px solid var(--border); }
+.suivi-title { font-size:10.5px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--text-3); }
+.suivi-fraction { font-family:var(--f-mono); font-size:11px; font-weight:600; color:var(--accent); }
+.suivi-bar-row { padding:12px 18px; border-bottom:1px solid var(--border); }
+.suivi-bar { height:4px; background:var(--surface-2); border-radius:99px; overflow:hidden; }
+.suivi-bar-fill { height:100%; border-radius:99px; background:var(--accent); transition:width var(--t-slow) var(--ease-out); }
+.suivi-sections { padding:10px 12px 12px; display:flex; flex-direction:column; gap:4px; }
+.suivi-sec { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--r-sm); border:1px solid transparent; cursor:pointer; transition:all var(--t-fast); }
+.suivi-sec:hover { background:var(--surface-2); border-color:var(--border); }
+.suivi-sec.active { background:var(--accent-lo); border-color:var(--accent-md); }
+.suivi-sec.past { opacity:0.55; }
+.suivi-sec.future { opacity:0.28; }
+.suivi-sec-n { font-family:var(--f-mono); font-size:10px; font-weight:600; color:var(--text-3); min-width:22px; }
+.suivi-sec.active .suivi-sec-n { color:var(--accent); }
+.suivi-sec-name { font-size:13px; font-weight:500; color:var(--text-2); flex:1; }
+.suivi-sec.active .suivi-sec-name { color:var(--text-1); font-weight:600; }
+.suivi-sec-pip { width:6px; height:6px; border-radius:50%; background:var(--surface-3); transition:background var(--t-mid), box-shadow var(--t-mid); }
+.suivi-sec.active .suivi-sec-pip { background:var(--accent); box-shadow:0 0 8px var(--accent); }
+.suivi-sec.past .suivi-sec-pip { background:color-mix(in srgb, var(--accent) 38%, transparent); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+.stagger-1 { animation:fadeUp 400ms var(--ease-out) both; animation-delay:60ms; }
+.stagger-2 { animation:fadeUp 400ms var(--ease-out) both; animation-delay:120ms; }
+.stagger-3 { animation:fadeUp 400ms var(--ease-out) both; animation-delay:180ms; }
+.stagger-4 { animation:fadeUp 400ms var(--ease-out) both; animation-delay:240ms; }
+
+@media print { #topbar, #counter, #nav, #tocDrawer, #tocScrim, #suiviPop { display:none !important; } #deck { position:static; overflow:visible; } .slide { min-height:0; page-break-after:always; } }
+</style>
+</head>
+<body data-theme="dark">
+
+
+<header id="topbar">
+  <div class="tb-brand">
+    <img class="tb-logo" src="d15-desjardins-logo-couleur.png" alt="Desjardins" onerror="this.style.display='none'">
+    <div class="tb-sep"></div>
+    <div class="tb-wordmark"><b>Desjardins</b> Marchés</div>
+  </div>
+  <div class="tb-center">
+    <div class="tb-label" id="tbLabel">Introduction · Titre</div>
+    <div class="progress-track" id="progressTrack" title="Cliquer pour naviguer">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      <div class="pt-ticks" id="ptTicks"></div>
+    </div>
+  </div>
+  <div class="tb-tools">
+    <button class="tb-btn" id="planBtn"><span class="ico">⊞</span> Plan</button>
+    <button class="tb-btn" id="suiviBtn"><span class="ico">◉</span> Suivi</button>
+    <div class="tb-goto">
+      <label for="gotoIn">Aller à</label>
+      <input id="gotoIn" type="number" min="1" placeholder="—">
+    </div>
+    <button class="tb-btn" id="themeBtn" title="Thème">◐</button>
+  </div>
+</header>
+
+<div id="suiviPop" aria-hidden="true">
+  <div class="suivi-inner">
+    <div class="suivi-head"><div class="suivi-title">Progression</div><div class="suivi-fraction" id="suiviFrac">01 / --</div></div>
+    <div class="suivi-bar-row"><div class="suivi-bar"><div class="suivi-bar-fill" id="suiviBarFill" style="width:0%"></div></div></div>
+    <div class="suivi-sections" id="suiviSecs"></div>
+  </div>
+</div>
+
+<div id="tocScrim"></div>
+<aside id="tocDrawer">
+  <div class="toc-top"><div class="toc-top-label">Plan</div><button class="toc-close-btn" id="tocCloseBtn">✕</button></div>
+  <div class="toc-prog"><div class="toc-prog-bar"><div class="toc-prog-fill" id="tocProgFill" style="width:0%"></div></div><div class="toc-prog-info" id="tocProgInfo">Slide <b>1</b> / --</div></div>
+  <div class="toc-filter-wrap"><input id="tocFilterInput" class="toc-filter" type="text" placeholder="Rechercher…"></div>
+  <div class="toc-list" id="tocList"></div>
+</aside>
+
+<main id="deck">
+
+
+
+  <!-- ── S1 TITRE ── -->
+
+  <section class="slide" id="s1" data-title="Titre" data-sec="Introduction">
+    <div class="card card-bare">
+      <div class="title-hero">
+        <img class="hero-logo stagger-1" src="d15-desjardins-logo-couleur.png" alt="Desjardins" onerror="this.style.display='none'">
+        <div class="hero-tag stagger-2">
+          <div class="hero-tag-line"></div>
+          <div class="hero-tag-text">Marchés · Trésorerie · Pricer</div>
+          <div class="hero-tag-line"></div>
+        </div>
+        <h1 class="hero-title stagger-2">Valorisation<br><em>Épargne à terme</em><br>prorogeable</h1>
+        <p class="hero-sub stagger-3">Cadre OIS CAD, modèle Hull‑White 1F, arbre trinomial<br>et sensibilités exploitables pour la couverture.</p>
+        <p class="hero-sub stagger-3" style="font-size:12px;color:var(--text-3);margin-bottom:24px">Équipe Marchés / Pricer — Mars 2026</p>
+        <div class="hero-chips stagger-4">
+          <div class="hero-chip"><div class="dot" style="background:var(--accent)"></div>CAD CORRA OIS</div>
+          <div class="hero-chip"><div class="dot" style="background:var(--blue)"></div>Hull‑White 1F</div>
+          <div class="hero-chip"><div class="dot" style="background:var(--amber)"></div>Exercice bermudien</div>
+          <div class="hero-chip"><div class="dot" style="background:var(--text-3)"></div>Greeks complets</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── S2 EXEMPLES ── -->
+
+  <section class="slide" id="s2" data-title="Exemples de produits" data-sec="1 · Contexte">
+    <div class="card card-xl">
+      <div class="eyebrow">01 · Contexte</div>
+      <h2 class="display">Exemples d'<em>épargne à terme</em><br>proposés par Desjardins</h2>
+      <div class="cols-2">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <div class="heading" style="margin:0">Épargne à terme 1</div>
+            <span class="pill green">Intérêt cumulatif · 6,05 %</span>
+          </div>
+          <ul>
+            <li>Intérêt ajouté chaque année à un taux fixe de <strong>6,05 %</strong>.</li>
+            <li>Pas de coupon annuel : tout est versé à la fin.</li>
+            <li>Remboursement selon un barème annuel croissant.</li>
+            <li>Prorogeable chaque année, durée maximale d'environ <strong>15 ans</strong>.</li>
+            <li>Capital garanti à l'échéance.</li>
+          </ul>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <div class="heading" style="margin:0">Épargne à terme 2</div>
+            <span class="pill blue">Coupon fixe · 4,10 %</span>
+          </div>
+          <ul>
+            <li>Revenu annuel garanti : coupon fixe de <strong>4,10 %</strong> par an.</li>
+            <li>Calcul des intérêts basé sur la convention 30/360.</li>
+            <li>Prolongeable chaque année, maximum d'environ <strong>10 ans</strong>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="divider" style="margin:22px 0 18px"></div>
+      <p>Ces deux structures partagent un même mécanisme : à chaque date anniversaire, une <strong>décision de renouvellement ou de remboursement</strong> intervient. Cette logique de prorogation à dates discrètes fait apparaître une composante optionnelle qu'il est nécessaire d'évaluer correctement.</p>
+    </div>
+  </section>
+
+  <!-- ── S3 SIMPLE VS STRUCTURÉE ── -->
+
+  <section class="slide" id="s3" data-title="Simple vs structurée" data-sec="1 · Contexte">
+    <div class="card card-xl">
+      <div class="eyebrow">02 · Évaluation</div>
+      <h2 class="display">Épargne à terme <em>simple</em><br>vs épargne à terme <em>structurée</em></h2>
+      <div class="cols-2">
+        <div>
+          <div class="heading" style="font-style:italic;font-family:var(--f-display);font-size:16px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-2);margin-bottom:12px">Flux connus d'avance</div>
+          <div class="note" style="margin:0 0 14px">
+            <p>Exemple : capital garanti + coupon fixe. Tous les flux sont déterminés à l'émission.</p>
+          </div>
+          <div class="eq-box">
+            <div class="eq">\[\text{Valeur} = \sum_j P(0,T_j)\;CF_j\]</div>
+          </div>
+          <p style="font-size:12px;color:var(--text-3);text-align:center;margin:6px 0 14px">On connaît tous les flux dès le départ. On actualise, c'est tout.</p>
+          <div class="note green">
+            <p>Le prix dépend <strong>uniquement</strong> de la courbe OIS — pas de volatilité, pas de modèle de taux.</p>
+          </div>
+        </div>
+        <div>
+          <div class="heading" style="font-style:italic;font-family:var(--f-display);font-size:16px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-2);margin-bottom:12px">Flux conditionnels</div>
+          <div class="note" style="margin:0 0 14px">
+            <p>Exemple : coupon indexé à CORRA, plafond sur le taux, ou choix de renouvellement à certaines dates.</p>
+          </div>
+          <div class="eq-box">
+            <div class="eq">\[\text{Valeur} = \underbrace{\sum_j P(0,T_j)\;CF_j}_{\text{partie obligataire}} \;\pm\; \underbrace{V^{opt}}_{\text{partie optionnelle}}\]</div>
+          </div>
+          <p style="font-size:12px;color:var(--text-3);text-align:center;margin:6px 0 14px">Dès que le coupon dépend du niveau futur des taux, une option apparaît.</p>
+          <div class="note amber">
+            <p>La <strong>volatilité</strong> devient un déterminant du prix — un choc sur la surface de vol change la valeur du produit même si les taux ne bougent pas.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── S4 MOTIVATION ── -->
+
+  <section class="slide" id="s4" data-title="Nécessité d'un pricer" data-sec="2 · Motivation">
+    <div class="card card-xl">
+      <div class="eyebrow">03 · Motivation</div>
+      <h2 class="display">Pourquoi un pricer<br><em>spécialisé</em> ?</h2>
+      <div class="cols-2" style="margin-bottom:24px">
+        <div>
+          <div class="heading">La composante optionnelle</div>
+          <p>Les produits d'épargne à terme prorogeables comportent une <strong>option bermudienne implicite</strong> — une décision de renouvellement à chaque date anniversaire. Cette composante impacte directement :</p>
+          <ul>
+            <li>La <strong>valeur</strong> du produit au-delà de ses flux garantis.</li>
+            <li>Le <strong>profil de risque taux</strong> : sensibilités non-linéaires (Gamma, Véga).</li>
+            <li>La <strong>stratégie de couverture</strong> : un simple DV01 ne suffit pas.</li>
+          </ul>
+          <div class="note green" style="margin-top:12px">
+            <p>Sans modèle adapté, la composante optionnelle n'est pas mesurée — l'exposition de taux est incomplète.</p>
+          </div>
+        </div>
+        <div>
+          <div class="heading">Approche retenue</div>
+          <p>Le modèle Hull‑White à 1 facteur offre un cadre cohérent pour valoriser des options sur taux dans un environnement OIS CAD, avec calibration sur la structure à terme initiale.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0">
+            <span class="pill green">Hull‑White 1F</span>
+            <span class="pill blue">CORRA OIS</span>
+            <span class="pill amber">Arbre trinomial</span>
+            <span class="pill">DV01 / KR-DV01</span>
+          </div>
+          <div class="note blue">
+            <p>Le pricer décompose chaque produit en <strong>partie obligataire</strong> (flux certains, actualisés) et <strong>partie optionnelle</strong> (bermudienne, évaluée par backward induction dans l'arbre).</p>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="flow">
+        <div class="flow-step"><span class="flow-num">01</span><div class="flow-title">Données marché</div><div class="flow-desc">Courbe CORRA OIS + spread CDF + volatilité. Reconstruction dual-curve.</div></div>
+        <div class="flow-step"><span class="flow-num">02</span><div class="flow-title">Calibration HW1F</div><div class="flow-desc">θ(t) calibré sur la courbe. Paramètres σ et a fixés ou calibrés sur swaptions.</div></div>
+        <div class="flow-step"><span class="flow-num">03</span><div class="flow-title">Prix + Sensibilités</div><div class="flow-desc">Backward induction bermudienne. DV01, CS01, Véga, Thêta, KR-DV01, scénarios.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── S5 DÉCISION ── -->
+
+  <section class="slide" id="s5" data-title="Proroger ou non" data-sec="3 · Décision économique">
+    <div class="card card-xl">
+      <div class="eyebrow">04 · Décision</div>
+      <h2 class="display">Proroger ou non —<br>la <em>décision</em> à chaque date</h2>
+      <p>À chaque date anniversaire, la trésorerie fait face à un choix concret :</p>
+      <div class="cols-2" style="margin-top:16px">
+        <div class="note red">
+          <p style="margin-bottom:6px"><strong>Ne pas proroger — rembourser le client</strong></p>
+          <p>La banque rembourse le capital et les intérêts dus, puis se refinance aux conditions actuelles du marché.</p>
+          <p style="margin-top:6px;font-size:12px;color:var(--text-3)">Coût de remplacement = taux OIS forward + spread de financement actuel.</p>
+        </div>
+        <div class="note green">
+          <p style="margin-bottom:6px"><strong>Proroger — conserver le dépôt</strong></p>
+          <p>La banque prolonge le dépôt d'un an supplémentaire. Le client continue d'être rémunéré au taux contractuel d'origine.</p>
+          <p style="margin-top:6px;font-size:12px;color:var(--text-3)">Coût = taux client, fixé à l'émission, inchangé.</p>
+        </div>
+      </div>
+      <div class="divider" style="margin:22px 0 18px"></div>
+      <div class="heading">Règle de décision</div>
+      <div class="eq-box" style="margin-top:10px">
+        <div class="eq">\[\underbrace{\text{Coût de financement au marché}}_{\text{taux OIS forward} \;+\; \text{spread actuel}} \;>\; \underbrace{\text{Taux payé au client}}_{\text{fixe, contractuel}} \quad\Longrightarrow\quad \text{la prorogation est avantageuse}\]</div>
+        <p class="eq-note">Si le marché exige un taux plus élevé que ce que la banque paie déjà au client, elle a intérêt à conserver ce financement « bon marché ».</p>
+      </div>
+      <div class="cols-2" style="margin-top:18px">
+        <div class="note green">
+          <p style="margin-bottom:4px"><strong>Écart positif — prorogation rentable</strong></p>
+          <p>Le financement au marché coûterait plus cher que le taux client. La banque économise la différence en prolongeant. Plus cet écart est grand, plus l'option a de la valeur.</p>
+        </div>
+        <div class="note" style="border-color:var(--border)">
+          <p style="margin-bottom:4px"><strong>Écart négatif — prorogation non rentable</strong></p>
+          <p>Le marché offre un financement moins cher que le taux client. Mieux vaut rembourser le déposant et se refinancer aux conditions actuelles.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+<section class="slide" id="s6" data-title="Pourquoi deux courbes ?" data-sec="4 · Dual-curve">
+  <div class="card card-xl">
+    <div class="eyebrow">05 · Dual-curve</div>
+    <h2 class="display">Pourquoi <em>deux</em> courbes ?</h2>
+    <p>Desjardins ne se finance pas au taux sans risque — elle paie un <strong>supplément</strong> (spread) au-dessus du taux de marché. Pour pricer correctement, il faut séparer les deux :</p>
+    <div class="eq-box" style="margin:18px 0">
+      <div class="eq">\[\text{Taux de financement Desjardins} = \underbrace{r_{\text{OIS}}}_{\text{marché}} + \underbrace{s_{\text{CDF}}}_{\text{Desjardins}}\]</div>
+    </div>
+    <div class="cols-2">
+      <div class="note green">
+        <p style="margin-bottom:4px"><strong>Courbe OIS (CORRA)</strong></p>
+        <p>Le taux « de base » du marché canadien. C'est lui qui <strong>bouge dans le modèle</strong>. Hull-White le modélise comme un processus stochastique.</p>
+      </div>
+      <div class="note amber">
+        <p style="margin-bottom:4px"><strong>Spread CDF</strong></p>
+        <p>Le surcoût propre à Desjardins. Il dépend de la maturité, mais on le traite comme <strong>fixe</strong> (déterministe) — il ne fluctue pas dans l'arbre.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s7" data-title="Facteur d'actualisation" data-sec="4 · Dual-curve">
+  <div class="card card-xl">
+    <div class="eyebrow">06 · P(0,T)</div>
+    <h2 class="display">P(0,T) — combien vaut<br><em>un dollar futur</em> aujourd'hui ?</h2>
+    <div class="cols-2">
+      <div>
+        <p>Un dollar reçu dans 10 ans ne vaut pas un dollar aujourd'hui. Le <strong>facteur d'actualisation</strong> P(0,T) donne la valeur présente :</p>
+        <div class="eq-box" style="margin:12px 0">
+          <div class="eq">\[P(0,T) = e^{-r(T) \cdot T}\]</div>
+          <p class="eq-note">Si r = 4 % et T = 10 ans : P = e<sup>−0.4</sup> ≈ 0.67. Un dollar dans 10 ans vaut 67 ¢ aujourd'hui.</p>
+        </div>
+        <p>Pour valoriser un produit, on multiplie chaque flux futur par son P(0,T) :</p>
+        <div class="eq-box">
+          <div class="eq">\[V_0 = \sum_j CF_j \times P(0, T_j)\]</div>
+        </div>
+      </div>
+      <div>
+        <div id="plot-bootstrap" class="plot" style="height:min(42vh,340px)"></div>
+        <p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px">Cliquez sur le graphique pour voir la construction pas à pas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="slide" id="s8" data-title="Qu'est-ce qu'un modèle ?" data-sec="5 · Hull-White 1F">
+  <div class="card card-xl">
+    <div class="eyebrow">07 · Modèle</div>
+    <h2 class="display">Qu'est-ce qu'un <em>modèle</em> de taux ?</h2>
+    <div class="cols-2">
+      <div>
+        <p>Aujourd'hui, on connaît les taux — c'est la courbe du marché. Mais pour évaluer une option, il faut imaginer <strong>comment les taux pourraient évoluer dans le futur</strong>.</p>
+        <p>Un modèle de taux est une <strong>recette mathématique</strong> qui décrit cette évolution. Il dit :</p>
+        <ul>
+          <li>Les taux fluctuent autour d'une tendance.</li>
+          <li>Les fluctuations ont une certaine ampleur (volatilité).</li>
+          <li>Si les taux s'écartent trop, ils reviennent vers la tendance.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="note green">
+          <p style="margin-bottom:6px"><strong>Analogie</strong></p>
+          <p>Pensez à un élastique attaché à un poteau. L'élastique (le taux) oscille autour du poteau (la tendance), mais le vent (les chocs aléatoires) le pousse dans toutes les directions. Plus l'élastique s'étire, plus il est rappelé.</p>
+        </div>
+        <div class="note" style="margin-top:10px">
+          <p>Hull-White est le modèle le plus utilisé pour les options sur taux. Il n'a que <strong>3 ingrédients</strong> — les 3 slides suivantes les détaillent.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s9" data-title="L'équation HW" data-sec="5 · Hull-White 1F">
+  <div class="card card-xl">
+    <div class="eyebrow">08 · SDE</div>
+    <h2 class="display">L'équation de <em>Hull-White</em></h2>
+    <div class="eq-box" style="margin:14px 0">
+      <div class="eq" style="font-size:clamp(18px,2.4vw,28px)">\[dr_t = \bigl(\underbrace{\theta(t)}_{\text{cible}} - \underbrace{a \cdot r_t}_{\text{rappel}}\bigr)\,dt + \underbrace{\sigma\,dW_t}_{\text{choc aléatoire}}\]</div>
+    </div>
+    <div class="cols-3">
+      <div class="note green">
+        <p style="margin-bottom:4px"><strong>θ(t) — la cible</strong></p>
+        <p>Vers où le taux est « attiré ». Déduit de la courbe du marché. → slide 09</p>
+      </div>
+      <div class="note amber">
+        <p style="margin-bottom:4px"><strong>a — le rappel</strong></p>
+        <p>La force qui ramène le taux vers la cible. Plus a est grand, plus le rappel est rapide. → slide 10–11</p>
+      </div>
+      <div class="note blue">
+        <p style="margin-bottom:4px"><strong>σ — les chocs</strong></p>
+        <p>L'ampleur des fluctuations aléatoires. Plus σ est grand, plus les taux bougent. → slide 12–13</p>
+      </div>
+    </div>
+    <div class="note" style="margin-top:14px">
+      <p><strong>En mots :</strong> à chaque instant, le taux court bouge d'une petite quantité. Cette quantité est la somme de (1) une force qui le tire vers la cible, et (2) un choc aléatoire.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s10" data-title="θ(t) — la cible" data-sec="5 · Hull-White 1F">
+  <div class="card card-xl">
+    <div class="eyebrow">09 · θ(t)</div>
+    <h2 class="display">θ(t) — la <em>cible mobile</em></h2>
+    <div class="cols-2">
+      <div>
+        <p>θ(t) est la seule fonction (pas un nombre) dans le modèle. Elle varie au cours du temps pour que le modèle <strong>reproduise exactement la courbe du marché</strong>.</p>
+        <div class="eq-box" style="margin:12px 0">
+          <div class="eq" style="font-size:14px">\[\theta(t) = \frac{\partial f(0,t)}{\partial t} + a \cdot f(0,t) + \frac{\sigma^2}{2a}\bigl(1 - e^{-2at}\bigr)\]</div>
+          <p class="eq-note">f(0,t) = taux forward instantané, extrait de P(0,T).</p>
+        </div>
+        <div class="note green">
+          <p><strong>Point clé :</strong> θ(t) n'est PAS un paramètre à estimer. Il est <strong>entièrement déterminé</strong> par la courbe du jour. Chaque jour que la courbe change, θ change aussi.</p>
+        </div>
+      </div>
+      <div>
+        <div id="plot-theta" class="plot" style="height:min(40vh,320px)"></div>
+        <p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px">θ(t) « suit » la courbe forward. Si les forwards montent, θ pousse r vers le haut.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s11" data-title="a — le rappel" data-sec="5 · Hull-White 1F">
+  <div class="card card-xl">
+    <div class="eyebrow">10 · Paramètre a</div>
+    <h2 class="display"><em>a</em> — la vitesse de retour<br>à la moyenne</h2>
+    <div class="cols-2">
+      <div>
+        <p>Quand le taux s'écarte de la cible (suite à un choc), <strong>a</strong> contrôle la vitesse à laquelle il revient. C'est comme la <strong>raideur de l'élastique</strong>.</p>
+        <div class="eq-box" style="margin:12px 0">
+          <div class="eq">\[\text{Demi-vie} = \frac{\ln 2}{a} \approx \frac{0.693}{a}\]</div>
+          <p class="eq-note">Temps pour que l'écart soit réduit de moitié.</p>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>a</th><th>Demi-vie</th><th>Lecture</th></tr></thead>
+          <tbody>
+            <tr><td><strong>0.01</strong></td><td>69 ans</td><td>Quasi pas de rappel</td></tr>
+            <tr><td><strong>0.03</strong></td><td>23 ans</td><td>Défaut pricer ✓</td></tr>
+            <tr><td><strong>0.10</strong></td><td>6.9 ans</td><td>Rappel modéré</td></tr>
+            <tr><td><strong>0.30</strong></td><td>2.3 ans</td><td>Rappel très rapide</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div id="plot-mean-rev" class="plot" style="height:min(42vh,340px)"></div>
+        <p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px">Même choc initial de +200 pb. Trois vitesses de rappel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s12" data-title="Calibrer a" data-sec="5 · Hull-White 1F">
+  <div class="card card-xl">
+    <div class="eyebrow">10b · Calibration a</div>
+    <h2 class="display">Comment <em>choisir a</em> ?</h2>
+    <div class="cols-2">
+      <div>
+        <div class="heading">Méthode idéale — calibration sur swaptions</div>
+        <p>On observe les prix de swaptions cotées sur le marché (ex : 1Y×5Y, 2Y×10Y, etc.). On cherche la valeur de <strong>a</strong> qui, combinée avec σ, <strong>reproduit au mieux ces prix</strong>.</p>
+        <div class="eq-box" style="margin:12px 0">
+          <div class="eq" style="font-size:14px">\[\min_{a,\sigma} \sum_k \left( V_{\text{HW}}(a,\sigma; \text{swpn}_k) - V_{\text{marché}}(\text{swpn}_k) \right)^2\]</div>
+          <p class="eq-note">Minimisation des écarts de prix entre le modèle et le marché.</p>
+        </div>
+      </div>
+      <div>
+        <div class="heading">En pratique dans le pricer</div>
+        <div class="note amber">
+          <p style="margin-bottom:6px"><strong>Valeur actuelle : a = 0.03 (fixe)</strong></p>
+          <p>C'est un proxy raisonnable pour le marché canadien — les taux CAD montrent historiquement un retour à la moyenne lent.</p>
+        </div>
+        <div class="note" style="margin-top:10px">
+          <p style="margin-bottom:6px"><strong>Sensibilité du prix à a</strong></p>
+          <p>Le prix bermudien est <strong>modérément sensible</strong> à a. Un a plus petit → les chocs persistent → plus de dispersion → option plus chère. L'impact est de l'ordre de 5–15 % de la valeur optionnelle pour un changement de a de ±0.02.</p>
+        </div>
+        <div class="note green" style="margin-top:10px">
+          <p><strong>Prochaine étape :</strong> calibration jointe (a, σ) sur la matrice de swaptions ATM CORRA.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s13" data-title="σ — les chocs" data-sec="5 · Hull-White 1F">
+  <div class="card card-xl">
+    <div class="eyebrow">11 · Paramètre σ</div>
+    <h2 class="display"><em>σ</em> — l'ampleur<br>des fluctuations</h2>
+    <div class="cols-2">
+      <div>
+        <p>σ contrôle la <strong>taille des chocs aléatoires</strong> sur le taux court. Plus σ est grand, plus les trajectoires s'écartent — et plus l'option a de la valeur.</p>
+        <div class="eq-box" style="margin:12px 0">
+          <div class="eq">\[\text{Dispersion à long terme} = \frac{\sigma}{\sqrt{2a}}\]</div>
+          <p class="eq-note">C'est le « plateau » de la volatilité. Le ratio σ/a la détermine.</p>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>σ (pb/an)</th><th>Dispersion (a=0.03)</th></tr></thead>
+          <tbody>
+            <tr><td>50</td><td>±204 pb</td></tr>
+            <tr><td><strong>65 (défaut)</strong></td><td><strong>±265 pb</strong></td></tr>
+            <tr><td>100</td><td>±408 pb</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div id="plot-sigma" class="plot" style="height:min(42vh,340px)"></div>
+        <p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px">Distribution du taux à T = 5 ans. Plus σ est grand, plus la cloche est large.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s14" data-title="Calibrer σ" data-sec="5 · Hull-White 1F">
+  <div class="card card-xl">
+    <div class="eyebrow">11b · Calibration σ</div>
+    <h2 class="display">Comment <em>choisir σ</em> ?</h2>
+    <div class="cols-2">
+      <div>
+        <div class="heading">Méthode de calibration</div>
+        <p>On utilise les <strong>volatilités normales de swaptions</strong> cotées sur le marché (en pb/an, convention Bachelier). La procédure :</p>
+        <ul>
+          <li><strong>1.</strong> Prendre une swaption de marché (ex : 5Y×5Y ATM).</li>
+          <li><strong>2.</strong> Pricer cette swaption avec le modèle HW1F (arbre).</li>
+          <li><strong>3.</strong> Ajuster σ jusqu'à ce que le prix HW = prix marché.</li>
+          <li><strong>4.</strong> Répéter pour plusieurs swaptions → σ « moyen ».</li>
+        </ul>
+        <div class="note amber" style="margin-top:12px">
+          <p><strong>Difficulté :</strong> le σ calibré dépend du couple (expiry, tenor). Avec un modèle 1F, on ne peut pas matcher toute la matrice — on choisit les swaptions les plus pertinentes pour nos produits.</p>
+        </div>
+      </div>
+      <div>
+        <div class="heading">Situation actuelle du pricer</div>
+        <div class="note amber">
+          <p style="margin-bottom:6px"><strong>σ = 65 pb (proxy fixe)</strong></p>
+          <p>Basé sur la vol normale ATM observée pour les swaptions 5Y–10Y CAD. C'est un proxy raisonnable, mais pas une calibration exacte.</p>
+        </div>
+        <div class="heading" style="margin-top:14px">Impact de σ sur le prix</div>
+        <div id="plot-vega-impact" class="plot" style="height:min(24vh,180px)"></div>
+        <p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px">Option (en $) pour un COUPON 5% 1A→10A selon σ. Relation quasi-linéaire.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s15" data-title="a et σ ensemble" data-sec="5 · Hull-White 1F">
+  <div class="card card-xl">
+    <div class="eyebrow">12 · Interaction</div>
+    <h2 class="display"><em>a</em> et <em>σ</em> ensemble —<br>ce qui compte, c'est le ratio</h2>
+    <div class="cols-2">
+      <div>
+        <p>La dispersion des taux à long terme est pilotée par <strong>σ/√(2a)</strong>. Deux combinaisons différentes peuvent donner la même dispersion :</p>
+        <table class="tbl" style="margin:12px 0">
+          <thead><tr><th>a</th><th>σ</th><th>σ/√(2a)</th><th>Résultat</th></tr></thead>
+          <tbody>
+            <tr><td>0.03</td><td>65 pb</td><td>265 pb</td><td>Référence</td></tr>
+            <tr><td>0.06</td><td>92 pb</td><td>265 pb</td><td>Même dispersion !</td></tr>
+            <tr><td>0.03</td><td>100 pb</td><td>408 pb</td><td>Plus dispersé</td></tr>
+          </tbody>
+        </table>
+        <div class="note green">
+          <p><strong>Mais :</strong> même si la dispersion finale est identique, la <strong>dynamique</strong> est différente. Avec a petit, les chocs persistent longtemps → l'option bermudienne (dates d'exercice proches) réagit différemment.</p>
+        </div>
+      </div>
+      <div>
+        <div id="plot-a-sigma" class="plot" style="height:min(42vh,340px)"></div>
+        <p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px">Prix de l'option en fonction de a, pour trois valeurs de σ.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s16" data-title="Trajectoires" data-sec="5 · Hull-White 1F">
+  <div class="card card-xl">
+    <div class="eyebrow">13 · Simulation</div>
+    <h2 class="display">Trajectoires <em>simulées</em></h2>
+    <div class="cols-2">
+      <div>
+        <p>En combinant θ(t), a et σ, voici ce que le modèle produit :</p>
+        <ul>
+          <li>Les chemins <strong>oscillent</strong> autour de la courbe forward.</li>
+          <li>Ils <strong>s'écartent</strong> puis la dispersion <strong>plafonne</strong>.</li>
+          <li>Chaque chemin = un scénario de taux futur.</li>
+        </ul>
+        <div class="note green" style="margin-top:14px">
+          <p>L'arbre trinomial capture cette distribution de façon <strong>exacte</strong> (mêmes moments) — sans simuler des milliers de chemins.</p>
+        </div>
+      </div>
+      <div>
+        <div id="plot-paths" class="plot" style="height:min(42vh,340px)"></div>
+        <p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px">20 trajectoires, a = 0.03, σ = 65 pb. La ligne verte = forward initial.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="slide" id="s17" data-title="Pourquoi un arbre ?" data-sec="6 · Arbre trinomial">
+  <div class="card card-xl">
+    <div class="eyebrow">14 · Arbre</div>
+    <h2 class="display">Pourquoi un <em>arbre</em><br>et pas une formule ?</h2>
+    <div class="cols-2">
+      <div>
+        <p>Pour une option européenne (une seule date), il existe une formule fermée. Mais notre option est <strong>bermudienne</strong> — 9 dates d'exercice possibles.</p>
+        <p>À chaque date, la décision optimale dépend de <strong>tout ce qui pourrait arriver ensuite</strong>. Pour résoudre ce problème, il faut :</p>
+        <ul>
+          <li>Énumérer tous les états possibles du monde.</li>
+          <li>Partir de la fin et remonter vers aujourd'hui.</li>
+          <li>À chaque nœud, prendre la meilleure décision.</li>
+        </ul>
+        <div class="note amber" style="margin-top:12px">
+          <p>C'est exactement ce que fait l'arbre trinomial.</p>
+        </div>
+      </div>
+      <div>
+        <canvas id="canvas-tree" style="width:100%;height:min(32vh,260px);border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg-raised)"></canvas>
+        <p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px">Chaque point = un état (date, taux). Orange = date d'exercice.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s18" data-title="La grille" data-sec="6 · Arbre trinomial">
+  <div class="card card-xl">
+    <div class="eyebrow">15 · Grille</div>
+    <h2 class="display">Construire la <em>grille</em></h2>
+    <div class="cols-2">
+      <div>
+        <div class="heading">En temps</div>
+        <div class="eq-box" style="margin:8px 0">
+          <div class="eq">\[\Delta t = \frac{1}{12} \;\;\text{(1 mois)}\]</div>
+        </div>
+        <p>Pour un produit 10 ans : 120 pas de temps.</p>
+        <div class="heading" style="margin-top:14px">En taux</div>
+        <div class="eq-box" style="margin:8px 0">
+          <div class="eq">\[\Delta r = \sigma\sqrt{3\Delta t} \approx 32\text{ pb}\]</div>
+        </div>
+        <p>Espacement régulier entre les niveaux de taux.</p>
+      </div>
+      <div>
+        <div class="heading">Taille de l'arbre</div>
+        <div class="eq-box" style="margin:8px 0">
+          <div class="eq">\[j_{\max} = \left\lceil\frac{0.184}{a \cdot \Delta t}\right\rceil = 74\]</div>
+          <p class="eq-note">74 niveaux de part et d'autre du centre.</p>
+        </div>
+        <div class="note" style="margin-top:14px">
+          <p style="margin-bottom:4px"><strong>Dimensions typiques</strong></p>
+          <table class="tbl" style="margin:0">
+            <thead><tr><th>Produit</th><th>Pas</th><th>Nœuds</th><th>Temps</th></tr></thead>
+            <tbody>
+              <tr><td>Coupon 1A→10A</td><td>108</td><td>~16 000</td><td>~50 ms</td></tr>
+              <tr><td>Accrual 1A→15A</td><td>168</td><td>~25 000</td><td>~80 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s19" data-title="Probabilités" data-sec="6 · Arbre trinomial">
+  <div class="card card-xl">
+    <div class="eyebrow">16 · Probabilités</div>
+    <h2 class="display">Les <em>probabilités</em> de transition</h2>
+    <p>À chaque nœud, le taux peut aller vers 3 destinations au pas suivant. Les probabilités sont choisies pour reproduire la moyenne et la variance du modèle Hull-White :</p>
+    <div class="eq-box" style="margin:14px 0">
+      <div class="eq" style="font-size:14px">\[p_{\text{haut}} = \tfrac{1}{6} + \tfrac{(aj\Delta t)^2 - aj\Delta t}{2} \qquad p_{\text{milieu}} = \tfrac{2}{3} - (aj\Delta t)^2 \qquad p_{\text{bas}} = \tfrac{1}{6} + \tfrac{(aj\Delta t)^2 + aj\Delta t}{2}\]</div>
+    </div>
+    <div class="cols-2">
+      <div class="note">
+        <p style="margin-bottom:4px"><strong>Au centre (j = 0)</strong></p>
+        <p>p<sub>haut</sub> = p<sub>bas</sub> = 1/6 ≈ 17 %, p<sub>milieu</sub> = 2/3 ≈ 67 %. Le taux reste le plus souvent au même niveau.</p>
+      </div>
+      <div class="note amber">
+        <p style="margin-bottom:4px"><strong>Aux bords (|j| = j<sub>max</sub>)</strong></p>
+        <p>On passe en branchement modifié : les 3 transitions pointent vers l'intérieur. L'arbre ne grossit plus.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s20" data-title="Calibration Arrow-Debreu" data-sec="6 · Arbre trinomial">
+  <div class="card card-xl">
+    <div class="eyebrow">17 · Arrow-Debreu</div>
+    <h2 class="display">Calibration θ(t) dans l'arbre —<br>les prix <em>Arrow-Debreu</em></h2>
+    <div class="cols-2">
+      <div>
+        <p>Q(i,j) = la « probabilité actualisée » d'atteindre le nœud (i,j) depuis aujourd'hui. C'est un prix Arrow-Debreu.</p>
+        <p>À chaque pas, on ajuste θ pour que :</p>
+        <div class="eq-box" style="margin:12px 0">
+          <div class="eq">\[\sum_j Q(i,j) \cdot e^{-r(i,j)\Delta t} = P_{\text{marché}}(0, t_{i+1})\]</div>
+          <p class="eq-note">L'arbre reproduit EXACTEMENT les facteurs d'actualisation du marché.</p>
+        </div>
+      </div>
+      <div>
+        <div class="flow" style="grid-template-columns:1fr;gap:6px;margin:0">
+          <div class="flow-step" style="padding:10px 14px"><span class="flow-num">1</span><div class="flow-desc">On connaît les Q(i,·) au pas i.</div></div>
+          <div class="flow-step" style="padding:10px 14px"><span class="flow-num">2</span><div class="flow-desc">On résout pour θ<sub>i</sub> (une seule inconnue, une seule équation).</div></div>
+          <div class="flow-step" style="padding:10px 14px"><span class="flow-num">3</span><div class="flow-desc">On calcule r(i,j) = r<sub>0</sub> + j·Δr + θ<sub>i</sub>.</div></div>
+          <div class="flow-step" style="padding:10px 14px"><span class="flow-num">4</span><div class="flow-desc">On propage Q vers le pas i+1.</div></div>
+          <div class="flow-step" style="padding:10px 14px"><span class="flow-num">5</span><div class="flow-desc">Répéter jusqu'à la maturité.</div></div>
+        </div>
+        <div class="note green" style="margin-top:10px">
+          <p><strong>Pas d'optimisation numérique.</strong> C'est un balayage avant, O(N × j<sub>max</sub>). Rapide et exact.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s21" data-title="Prix ZC — formule affine" data-sec="6 · Arbre trinomial">
+  <div class="card card-xl">
+    <div class="eyebrow">18 · Formule affine</div>
+    <h2 class="display">Prix d'un zéro-coupon<br>à <em>n'importe quel nœud</em></h2>
+    <p>À chaque nœud de l'arbre, on connaît le taux r. On peut calculer le prix de n'importe quelle obligation instantanément :</p>
+    <div class="eq-box" style="margin:14px 0">
+      <div class="eq" style="font-size:clamp(16px,2vw,22px)">\[P(t,T \mid r) = A(t,T) \cdot e^{-B(t,T) \cdot r}\]</div>
+    </div>
+    <div class="cols-2">
+      <div>
+        <div class="eq-box">
+          <div class="eq">\[B(t,T) = \frac{1 - e^{-a(T-t)}}{a}\]</div>
+          <p class="eq-note">« Durée effective » par rapport au taux court.</p>
+        </div>
+      </div>
+      <div>
+        <div class="eq-box">
+          <div class="eq" style="font-size:12.5px">\[\ln A = \ln\tfrac{P_0(T)}{P_0(t)} + B\,f(0,t) - \tfrac{\sigma^2}{4a}B^2(1-e^{-2at})\]</div>
+          <p class="eq-note">Ajustement de convexité HW1F.</p>
+        </div>
+      </div>
+    </div>
+    <div class="note green" style="margin-top:14px">
+      <p><strong>C'est la clé de l'efficacité.</strong> Pour calculer le payoff, il faut le prix de chaque coupon résiduel. Cette formule les donne tous instantanément — pas besoin de sous-arbre.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s22" data-title="B(t,T)" data-sec="6 · Arbre trinomial">
+  <div class="card card-xl">
+    <div class="eyebrow">18b · B(t,T)</div>
+    <h2 class="display">La fonction <em>B(t,T)</em></h2>
+    <div class="cols-2">
+      <div>
+        <p>B(t,T) mesure combien le prix d'un zéro-coupon est sensible au taux court. Un choc de +1 pb sur r fait baisser ln P d'environ B pb.</p>
+        <ul>
+          <li><strong>Court terme :</strong> B ≈ T−t (durée classique).</li>
+          <li><strong>Long terme :</strong> B plafonne à 1/a.</li>
+          <li>Avec a = 0.03 : max ≈ 33 ans.</li>
+        </ul>
+        <div class="note green" style="margin-top:12px">
+          <p>Le plafonnement est dû au retour à la moyenne : un choc aujourd'hui n'a qu'un impact limité sur le taux dans 30 ans.</p>
+        </div>
+      </div>
+      <div>
+        <div id="plot-bfunc" class="plot" style="height:min(38vh,300px)"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="slide" id="s23" data-title="La décision" data-sec="7 · Induction à rebours">
+  <div class="card card-xl">
+    <div class="eyebrow">19 · Décision</div>
+    <h2 class="display">À chaque nœud :<br><em>exercer</em> ou <em>attendre</em> ?</h2>
+    <div class="eq-box" style="margin:14px 0">
+      <div class="eq" style="font-size:clamp(18px,2.4vw,26px)">\[V(i,j) = \max\!\Big(\underbrace{\Phi}_{\text{exercer}},\;\underbrace{C}_{\text{attendre}}\Big)\]</div>
+    </div>
+    <div class="cols-2">
+      <div class="note amber">
+        <p style="margin-bottom:6px"><strong>Exercer Φ</strong></p>
+        <p>« Je prolonge maintenant. Combien est-ce que j'économise ? » On calcule la VA des cashflows que la banque devrait payer. Si VA &lt; Nominal → gain.</p>
+      </div>
+      <div class="note blue">
+        <p style="margin-bottom:6px"><strong>Attendre C</strong></p>
+        <p>« Et si j'attendais un an de plus ? » Moyenne pondérée des V au pas suivant, actualisée. La <strong>valeur temporelle</strong> vit ici.</p>
+      </div>
+    </div>
+    <div class="note green" style="margin-top:14px">
+      <p>Le max ne s'applique <strong>qu'aux dates d'exercice</strong>. Entre deux dates, V = C (pas de choix possible).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s24" data-title="Valeur de continuation" data-sec="7 · Induction à rebours">
+  <div class="card card-xl">
+    <div class="eyebrow">20 · Continuation</div>
+    <h2 class="display">La valeur de <em>continuation</em></h2>
+    <div class="eq-box" style="margin:14px 0">
+      <div class="eq">\[C(i,j) = e^{-r(i,j)\,\Delta t} \times \bigl(p_u \cdot V_{i+1,j+1} + p_m \cdot V_{i+1,j} + p_d \cdot V_{i+1,j-1}\bigr)\]</div>
+    </div>
+    <p>En mots : on prend la moyenne pondérée des valeurs aux 3 nœuds suivants (haut, milieu, bas), et on actualise sur un pas de temps.</p>
+    <div class="note">
+      <p><strong>Intuition :</strong> même si aujourd'hui l'exercice ne vaut rien (Φ = 0), dans un an les taux pourraient avoir monté — et là, l'exercice pourrait valoir beaucoup. C est la valeur de cette <strong>possibilité</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s25" data-title="Le parcours à rebours" data-sec="7 · Induction à rebours">
+  <div class="card card-xl">
+    <div class="eyebrow">21 · Étapes</div>
+    <h2 class="display">Le parcours à <em>rebours</em> — 5 étapes</h2>
+    <div class="flow" style="grid-template-columns:repeat(5,1fr)">
+      <div class="flow-step"><span class="flow-num">A</span><div class="flow-title">Dernière date</div><div class="flow-desc">V = Φ partout (plus de continuation possible).</div></div>
+      <div class="flow-step"><span class="flow-num">B</span><div class="flow-title">Propagation</div><div class="flow-desc">C = e<sup>−rΔt</sup> × moyenne pondérée.</div></div>
+      <div class="flow-step"><span class="flow-num">C</span><div class="flow-title">Date d'exercice ?</div><div class="flow-desc">Oui → V = max(Φ, C). Non → V = C.</div></div>
+      <div class="flow-step"><span class="flow-num">D</span><div class="flow-title">Reculer d'un pas</div><div class="flow-desc">On recommence B-C.</div></div>
+      <div class="flow-step"><span class="flow-num">E</span><div class="flow-title">Arrivée</div><div class="flow-desc">V(0,0) = prix de l'option.</div></div>
+    </div>
+    <div class="note green" style="margin-top:18px">
+      <p>Ce processus est <strong>déterministe</strong> — pas de simulation Monte Carlo. Le résultat est exact (aux erreurs de discrétisation près).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s26" data-title="Payoff COUPON" data-sec="7 · Induction à rebours">
+  <div class="card card-xl">
+    <div class="eyebrow">22 · Payoff Coupon</div>
+    <h2 class="display">Payoff — type <em>COUPON</em></h2>
+    <p>Si la banque prolonge à la date t, elle devra payer des coupons + le principal. La VA de ces flux au nœud (i,j) :</p>
+    <div class="eq-box" style="margin:14px 0">
+      <div class="eq" style="font-size:14px">\[\text{VA}_{\text{client}} = \sum_{k=1}^{n} N \cdot c \cdot \alpha_k \cdot P(t,T_k|r) \cdot e^{-s\tau_k} + N \cdot P(t,T_n|r) \cdot e^{-s\tau_n}\]</div>
+    </div>
+    <div class="eq-box" style="border-color:var(--accent)">
+      <div class="eq">\[\Phi = \max\big(0,\; N - \text{VA}_{\text{client}}\big)\]</div>
+      <p class="eq-note">Si le taux de marché est élevé → P petits → VA faible → Φ &gt; 0.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s27" data-title="Payoff ACCRUAL" data-sec="7 · Induction à rebours">
+  <div class="card card-xl">
+    <div class="eyebrow">23 · Payoff Accrual</div>
+    <h2 class="display">Payoff — type <em>LINEAR ACCRUAL</em></h2>
+    <p>Un seul flux à maturité : capital + intérêts cumulés.</p>
+    <div class="eq-box" style="margin:14px 0">
+      <div class="eq">\[\text{VA}_{\text{client}} = N(1+r_{\text{client}} \cdot \tau) \cdot P(t,T|r) \cdot e^{-s\tau}\]</div>
+    </div>
+    <div class="cols-2">
+      <div class="note">
+        <p style="margin-bottom:4px"><strong>Différences avec COUPON</strong></p>
+        <p>Un seul flux au lieu de n coupons. L'intérêt est linéaire (pas composé). Plus τ est grand, plus le flux est gros.</p>
+      </div>
+      <div class="note amber">
+        <p style="margin-bottom:4px"><strong>Cas dégénéré</strong></p>
+        <p>Si date initiale = date finale (pas de prorogation possible), l'option = 0. Le pricer gère ce cas automatiquement.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s28" data-title="Pourquoi le payoff exact ?" data-sec="7 · Induction à rebours">
+  <div class="card card-xl">
+    <div class="eyebrow">24 · Exactitude</div>
+    <h2 class="display">Pourquoi le payoff <em>exact</em><br>et pas une approximation ?</h2>
+    <div class="cols-2">
+      <div>
+        <div class="heading" style="color:var(--red)">L'approximation simpliste</div>
+        <div class="eq-box" style="margin:8px 0">
+          <div class="eq" style="font-size:14px">\[\Phi \approx (\text{écart de taux}) \times N \times \tau\]</div>
+          <p class="eq-note">Développement au 1er ordre. Rapide mais faux en deep-ITM.</p>
+        </div>
+        <p>Quand l'écart est grand (>200 pb), cette approximation peut surestimer le payoff de <strong>20–40 %</strong>.</p>
+      </div>
+      <div>
+        <div class="heading" style="color:var(--accent)">Le payoff exact (notre approche)</div>
+        <div class="eq-box" style="margin:8px 0">
+          <div class="eq" style="font-size:14px">\[\Phi = \max(0,\; N - \text{VA exacte des cashflows})\]</div>
+          <p class="eq-note">On actualise chaque flux réel au taux HW du nœud.</p>
+        </div>
+        <p>C'est la <strong>décision économique réelle</strong> : comparer le nominal au coût actualisé de la prorogation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s29" data-title="Frontière d'exercice" data-sec="7 · Induction à rebours">
+  <div class="card card-xl">
+    <div class="eyebrow">25 · Frontière</div>
+    <h2 class="display">La frontière d'exercice</h2>
+    <div class="cols-2">
+      <div>
+        <p>À chaque date d'exercice, il existe un seuil r* :</p>
+        <ul>
+          <li><strong>r &lt; r* :</strong> taux marché « élevés » → proroger (le taux client est bon marché).</li>
+          <li><strong>r &gt; r* :</strong> taux marché bas → rembourser.</li>
+        </ul>
+        <div class="note amber" style="margin-top:12px">
+          <p>La frontière <strong>sort automatiquement</strong> de l'induction. Elle dépend de a, σ, du spread et de la courbe.</p>
+        </div>
+      </div>
+      <div>
+        <div id="plot-boundary" class="plot" style="height:min(40vh,320px)"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s30" data-title="Décomposition" data-sec="7 · Induction à rebours">
+  <div class="card card-xl">
+    <div class="eyebrow">26 · Décomposition</div>
+    <h2 class="display">VA = Fixe + <em>Option</em></h2>
+    <div class="eq-box" style="margin-bottom:18px">
+      <div class="eq">\[\text{VAN} = \underbrace{\text{VA fixe}}_{\text{flux garantis}} + \underbrace{\overbrace{\text{Intrinsèque}}^{\text{exercice immédiat}} + \overbrace{\text{Temporelle}}^{\text{droit d'attendre}}}_{\text{Option bermudienne}}\]</div>
+    </div>
+    <div class="cols-3">
+      <div class="note blue"><p style="margin-bottom:4px"><strong>VA fixe</strong></p><p>Flux certains jusqu'à la 1re échéance. Aucun modèle requis.</p></div>
+      <div class="note amber"><p style="margin-bottom:4px"><strong>Intrinsèque</strong></p><p>Gain si on exerçait « maintenant ». Calculé au nœud central.</p></div>
+      <div class="note" style="border-color:rgba(88,86,214,0.3);background:rgba(88,86,214,0.08)"><p style="margin-bottom:4px"><strong>Temporelle</strong></p><p>Option − Intrinsèque. Max quand l'écart ≈ 0 (ATM).</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s31" data-title="Exemple chiffré" data-sec="7 · Induction à rebours">
+  <div class="card card-xl">
+    <div class="eyebrow">27 · Exemple</div>
+    <h2 class="display">Exemple — COUPON <em>5 %</em>, 1A→10A</h2>
+    <div class="cols-2">
+      <div>
+        <table class="tbl">
+          <tbody>
+            <tr><td>Nominal</td><td>1 000 $</td></tr>
+            <tr><td>Coupon</td><td>5,00 % annuel</td></tr>
+            <tr><td>Période garantie</td><td>1 an</td></tr>
+            <tr><td>Maturité finale</td><td>10 ans</td></tr>
+            <tr><td>Dates d'exercice</td><td>Années 1 à 9</td></tr>
+            <tr><td>a / σ</td><td>0.03 / 65 pb</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="metrics-grid" style="grid-template-columns:1fr 1fr">
+          <div class="metric"><span class="metric-num" style="color:var(--accent)">1 105 $</span><span class="metric-label">VAN totale</span></div>
+          <div class="metric"><span class="metric-num" style="color:var(--blue)">1 025 $</span><span class="metric-label">VA fixe</span></div>
+          <div class="metric"><span class="metric-num" style="color:var(--amber)">80 $</span><span class="metric-label">Option</span></div>
+          <div class="metric"><span class="metric-num">68 $</span><span class="metric-label">Intrinsèque</span></div>
+          <div class="metric"><span class="metric-num" style="color:#5856D6">12 $</span><span class="metric-label">Val. temporelle (15 %)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="slide" id="s32" data-title="Pourquoi des sensibilités ?" data-sec="8 · Sensibilités">
+  <div class="card card-xl">
+    <div class="eyebrow">28 · Sensibilités</div>
+    <h2 class="display">Pourquoi calculer<br>des <em>sensibilités</em> ?</h2>
+    <p>Le prix seul ne suffit pas pour gérer le risque. Il faut savoir <strong>comment le prix change</strong> quand les conditions de marché bougent. Chaque sensibilité répond à une question précise :</p>
+    <table class="tbl" style="margin-top:14px">
+      <thead><tr><th>Mesure</th><th>Question</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--red)"><strong>DV01</strong></td><td>Que se passe-t-il si les taux bougent de 1 pb ?</td><td>Taille de la couverture</td></tr>
+        <tr><td style="color:var(--amber)"><strong>CS01</strong></td><td>Que se passe-t-il si le spread CDF bouge de 1 pb ?</td><td>Risque de financement</td></tr>
+        <tr><td style="color:#5856D6"><strong>Gamma</strong></td><td>Le DV01 est-il stable ou change-t-il ?</td><td>Risque de rebalancement</td></tr>
+        <tr><td style="color:var(--blue)"><strong>Thêta</strong></td><td>Combien le produit « rapporte » par jour ?</td><td>Suivi P&L quotidien</td></tr>
+        <tr><td><strong>Véga</strong></td><td>Et si la volatilité change ?</td><td>Erreur de modèle</td></tr>
+        <tr><td style="color:var(--accent)"><strong>KR-DV01</strong></td><td>Où sur la courbe est le risque ?</td><td>Hedging par maturité</td></tr>
+      </tbody>
+    </table>
+    <div class="note green" style="margin-top:14px">
+      <p>Chaque mesure = un <strong>re-pricing complet</strong> (arbre reconstruit avec inputs bumpés). C'est le coût d'être précis.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s33" data-title="DV01" data-sec="8 · Sensibilités">
+  <div class="card card-xl">
+    <div class="eyebrow">29 · DV01</div>
+    <h2 class="display"><em>DV01</em> — risque de taux</h2>
+    <div class="cols-2">
+      <div>
+        <div class="eq-box">
+          <div class="eq">\[\text{DV01} = \frac{VA(-1\text{pb}) - VA(+1\text{pb})}{2}\]</div>
+          <p class="eq-note">Bump parallèle de toute la courbe OIS. Spread inchangé.</p>
+        </div>
+        <p style="margin-top:10px">Si DV01 = 7 $, une baisse de 10 pb → gain ≈ 70 $.</p>
+        <div class="note" style="margin-top:12px">
+          <p><strong>Ordre de grandeur :</strong> COUPON 5 %, 10A, nominal 1 000 $ → DV01 ≈ 6–8 $/pb.</p>
+        </div>
+      </div>
+      <div>
+        <div id="plot-dv01" class="plot" style="height:min(38vh,300px)"></div>
+        <p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px">VA en fonction du bump. La pente = DV01. La courbure = Gamma.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s34" data-title="CS01 — DV01 ≠ CS01" data-sec="8 · Sensibilités">
+  <div class="card card-xl">
+    <div class="eyebrow">30 · CS01</div>
+    <h2 class="display"><em>CS01</em> — et pourquoi<br>DV01 ≠ CS01</h2>
+    <div class="cols-2">
+      <div>
+        <div class="eq-box">
+          <div class="eq">\[\text{CS01} = \frac{VA^{cs}(-1\text{pb}) - VA^{cs}(+1\text{pb})}{2}\]</div>
+          <p class="eq-note">Bump du spread CDF. Courbe OIS inchangée.</p>
+        </div>
+      </div>
+      <div>
+        <div class="note green">
+          <p style="margin-bottom:6px"><strong>Pourquoi DV01 ≠ CS01 ?</strong></p>
+          <p>Pour une obligation classique, les deux sont identiques. Mais pour un prorogeable, l'option dépend de l'OIS (stochastique) mais pas du spread (déterministe). Un bump d'OIS change la <strong>structure de l'arbre</strong> et la frontière d'exercice. Un bump de spread ne change que l'actualisation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s35" data-title="Gamma" data-sec="8 · Sensibilités">
+  <div class="card card-xl">
+    <div class="eyebrow">31 · Gamma</div>
+    <h2 class="display"><em>Gamma</em> — la convexité</h2>
+    <div class="eq-box" style="margin:14px 0">
+      <div class="eq">\[\Gamma = \frac{DV01(+\text{bump}) - DV01(-\text{bump})}{2 \times \text{bump}}\]</div>
+    </div>
+    <p>Le Gamma mesure <strong>comment le DV01 lui-même change</strong> quand les taux bougent. Si Gamma &gt; 0, le DV01 augmente quand les taux baissent → la couverture doit être ajustée dynamiquement.</p>
+    <div class="note amber">
+      <p><strong>La composante optionnelle génère du Gamma positif.</strong> C'est ce qui distingue un prorogeable d'une obligation classique (Gamma ≈ 0 pour une obligation).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s36" data-title="Véga" data-sec="8 · Sensibilités">
+  <div class="card card-xl">
+    <div class="eyebrow">32 · Véga</div>
+    <h2 class="display"><em>Véga</em> — sensibilité à σ</h2>
+    <div class="cols-2">
+      <div>
+        <div class="eq-box">
+          <div class="eq">\[\mathcal{V} = \frac{V(\sigma+1\text{pb}) - V(\sigma-1\text{pb})}{2}\]</div>
+          <p class="eq-note">2 arbres reconstruits avec σ bumpé.</p>
+        </div>
+        <p style="margin-top:10px">Véga mesure l'erreur potentielle due au choix de σ. Si Véga = 0.5 $/pb et σ est faux de 10 pb, l'erreur ≈ 5 $.</p>
+      </div>
+      <div>
+        <div class="note">
+          <p style="margin-bottom:4px"><strong>Quand le Véga est-il grand ?</strong></p>
+          <ul>
+            <li>Produit proche de la frontière (ATM).</li>
+            <li>Longue maturité résiduelle.</li>
+            <li>COUPON > LINEAR ACCRUAL.</li>
+          </ul>
+        </div>
+        <div class="note amber" style="margin-top:10px">
+          <p>Tant que σ est un proxy fixe (65 pb), le Véga quantifie le <strong>risque de modèle</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s37" data-title="Thêta" data-sec="8 · Sensibilités">
+  <div class="card card-xl">
+    <div class="eyebrow">33 · Thêta</div>
+    <h2 class="display"><em>Thêta</em> — le portage</h2>
+    <div class="eq-box" style="margin:14px 0">
+      <div class="eq">\[\Theta = VA(t+1\text{j}) - VA(t)\]</div>
+      <p class="eq-note">On avance la date d'un jour, courbe inchangée.</p>
+    </div>
+    <div class="cols-2">
+      <div class="note">
+        <p style="margin-bottom:4px"><strong>Portage positif</strong></p>
+        <p>Chaque jour, la banque « encaisse » du rendement (taux client &gt; taux marché).</p>
+      </div>
+      <div class="note">
+        <p style="margin-bottom:4px"><strong>Décroissance de la time value</strong></p>
+        <p>Chaque jour rapproche de l'échéance → moins de temps pour que l'option prenne de la valeur.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s38" data-title="KR-DV01" data-sec="8 · Sensibilités">
+  <div class="card card-xl">
+    <div class="eyebrow">34 · KR-DV01</div>
+    <h2 class="display"><em>KR-DV01</em> — où sur la courbe ?</h2>
+    <div class="cols-2">
+      <div>
+        <p>Au lieu de bumper toute la courbe, on bumpe <strong>un seul pilier</strong> :</p>
+        <div class="eq-box" style="margin:12px 0">
+          <div class="eq">\[\text{KR-DV01}(\tau) = \frac{VA_{\downarrow}(\tau) - VA_{\uparrow}(\tau)}{2}\]</div>
+        </div>
+        <p>Chaque barre → un notionnel de <strong>swap OIS</strong> de couverture à cette maturité.</p>
+        <div class="note blue" style="margin-top:10px">
+          <p>C'est l'input <strong>direct</strong> du hedging. Le trader voit combien de swap 5A, 7A, 10A il lui faut.</p>
+        </div>
+      </div>
+      <div>
+        <div id="plot-krdv01" class="plot" style="height:min(38vh,300px)"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="slide" id="s39" data-title="Pipeline" data-sec="9 · Architecture">
+  <div class="card card-xl">
+    <div class="eyebrow">35 · Pipeline</div>
+    <h2 class="display">De la courbe aux <em>résultats</em></h2>
+    <div class="flow" style="grid-template-columns:repeat(4,1fr)">
+      <div class="flow-step"><span class="flow-num">01</span><div class="flow-title">Courbe</div><div class="flow-desc">SQL ou CSV. OIS + Spread CDF. Bootstrap log-linéaire.</div></div>
+      <div class="flow-step"><span class="flow-num">02</span><div class="flow-title">Instruments</div><div class="flow-desc">Excel (inventaire PRORO) ou saisie manuelle.</div></div>
+      <div class="flow-step"><span class="flow-num">03</span><div class="flow-title">HW1F + Arbre</div><div class="flow-desc">Calibration θ. Backward induction.</div></div>
+      <div class="flow-step"><span class="flow-num">04</span><div class="flow-title">Résultats</div><div class="flow-desc">VA, Option, Greeks, export Excel.</div></div>
+    </div>
+    <div class="cols-2" style="margin-top:18px">
+      <div>
+        <table class="tbl">
+          <tbody>
+            <tr><td><code>Python / Flask</code></td><td>Backend + API</td></tr>
+            <tr><td><code>HW1F maison</code></td><td>Pas de QuantLib</td></tr>
+            <tr><td><code>HTML / JS</code></td><td>Interface 9 onglets</td></tr>
+            <tr><td><code>SQL Server</code></td><td>Courbes en prod</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <ul>
+          <li><strong>Saisie</strong> — 1 instrument, 9 onglets.</li>
+          <li><strong>Excel</strong> — book complet, batch.</li>
+          <li><strong>Portefeuille</strong> — agrégation + scénarios.</li>
+        </ul>
+        <div class="note green" style="margin-top:10px"><p><code>localhost:5050/cpg</code></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s40" data-title="Limites" data-sec="9 · Architecture">
+  <div class="card card-xl">
+    <div class="eyebrow">36 · Limites</div>
+    <h2 class="display">En place ✓ et <em>prochaines étapes</em></h2>
+    <div class="cols-2">
+      <div>
+        <div class="heading" style="color:var(--accent)">Fonctionnel</div>
+        <ul>
+          <li>Dual-curve OIS + Spread CDF</li>
+          <li>COUPON et LINEAR ACCRUAL</li>
+          <li>Arbre HW1F calibré, payoff exact</li>
+          <li>DV01, CS01, Gamma, Thêta, Véga, KR-DV01</li>
+          <li>Export Excel 7 feuilles</li>
+          <li>SQL + upload batch</li>
+        </ul>
+      </div>
+      <div>
+        <div class="heading" style="color:var(--amber)">À venir</div>
+        <ul>
+          <li><strong>Calibration σ sur surface de vol</strong></li>
+          <li><strong>Historique spread par CUSIP</strong></li>
+          <li>Bloomberg blpapi</li>
+          <li>Distribution .exe</li>
+          <li>Swaption bermudienne classique</li>
+          <li>Validation Murex / QRM</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="sA1" data-title="Conventions de jour" data-sec="Annexe">
+  <div class="card card-xl">
+    <div class="eyebrow">A1 · Annexe</div>
+    <h2 class="display">Conventions de <em>comptage</em></h2>
+    <table class="tbl">
+      <thead><tr><th>Convention</th><th>α</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ACT/365</strong></td><td>jours réels / 365</td><td>Coupons ÉT, standard CAD</td></tr>
+        <tr><td><strong>30/360</strong></td><td>(360ΔA + 30ΔM + ΔJ)/360</td><td>Produit 2 (coupon fixe)</td></tr>
+        <tr><td><strong>ACT/360</strong></td><td>jours réels / 360</td><td>CORRA overnight</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="slide" id="sA2" data-title="Interpolation" data-sec="Annexe">
+  <div class="card card-xl">
+    <div class="eyebrow">A2 · Annexe</div>
+    <h2 class="display">Interpolation et <em>forwards</em></h2>
+    <div class="cols-2">
+      <div>
+        <table class="tbl">
+          <thead><tr><th>Méthode</th><th>Forwards</th></tr></thead>
+          <tbody>
+            <tr><td>Linéaire sur P</td><td>Discontinus</td></tr>
+            <tr><td><strong>Log-linéaire ✓</strong></td><td>Constants par segment</td></tr>
+            <tr><td>Cubique</td><td>Lisses, risque d'oscillation</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div id="plot-interp" class="plot" style="height:min(36vh,280px)"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="sA3" data-title="Bachelier" data-sec="Annexe">
+  <div class="card card-xl">
+    <div class="eyebrow">A3 · Annexe</div>
+    <h2 class="display">Volatilité <em>normale</em> (Bachelier)</h2>
+    <div class="cols-2">
+      <div>
+        <div class="eq-box"><div class="eq">\[S_T \sim \mathcal{N}(S_0, \sigma_n^2 T)\]</div></div>
+        <div class="note green" style="margin-top:12px">
+          <p>On calibre σ<sub>HW</sub> pour que le prix HW d'une swaption = prix Bachelier du marché.</p>
+        </div>
+      </div>
+      <div>
+        <div id="plot-bachelier" class="plot" style="height:min(32vh,250px)"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s41" data-title="Merci" data-sec="Conclusion">
+  <div class="card card-bare">
+    <div class="title-hero">
+      <img class="hero-logo" src="d15-desjardins-logo-couleur.png" alt="Desjardins" onerror="this.style.display='none'" style="margin-bottom:32px">
+      <h1 class="hero-title" style="margin-bottom:16px"><em>Merci</em></h1>
+      <p class="hero-sub">Questions et discussion</p>
+      <div class="divider" style="width:80px;margin:20px auto"></div>
+      <p style="font-size:12px;color:var(--text-3)"><strong>Pricer Épargne à terme prorogeable</strong><br>Équipe Marchés / Pricer — Desjardins<br><code>localhost:5050/cpg</code></p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+
+<div id="counter"><span class="ctr-pos" id="ctrPos">01/--</span><div class="ctr-div"></div><span class="ctr-title" id="ctrTitle">—</span></div>
+<div id="nav"><button class="nav-btn" id="prevBtn" title="←">←</button><button class="nav-btn" id="nextBtn" title="→">→</button></div>
+<script>
+(function(){
+'use strict';
+const deck=document.getElementById('deck'),slides=[...document.querySelectorAll('.slide')],N=slides.length;
+const pF=document.getElementById('progressFill'),pT=document.getElementById('ptTicks'),tL=document.getElementById('tbLabel');
+const pB=document.getElementById('planBtn'),sB=document.getElementById('suiviBtn'),thB=document.getElementById('themeBtn'),gI=document.getElementById('gotoIn');
+const prB=document.getElementById('prevBtn'),nxB=document.getElementById('nextBtn'),cP=document.getElementById('ctrPos'),cT=document.getElementById('ctrTitle');
+const tD=document.getElementById('tocDrawer'),tS=document.getElementById('tocScrim'),tCB=document.getElementById('tocCloseBtn'),tL2=document.getElementById('tocList'),tFI=document.getElementById('tocFilterInput'),tPF=document.getElementById('tocProgFill'),tPI=document.getElementById('tocProgInfo');
+const sP=document.getElementById('suiviPop'),sF=document.getElementById('suiviFrac'),sBF=document.getElementById('suiviBarFill'),sS=document.getElementById('suiviSecs');
+const meta=slides.map((s,i)=>({i,id:s.id,title:s.dataset.title||'Slide '+(i+1),sec:s.dataset.sec||'—'}));
+const secs=[],seen=new Set();meta.forEach(m=>{if(!seen.has(m.sec)){seen.add(m.sec);secs.push(m.sec);}});
+const sF2=s=>meta.find(m=>m.sec===s).i,sL=s=>[...meta].reverse().find(m=>m.sec===s).i;
+let ac=0,pO=false,sO=false;const bd=document.body;
+const aT=t=>{bd.dataset.theme=t;localStorage.setItem('dj_theme',t);thB.textContent=t==='dark'?'●':'○';};
+aT(localStorage.getItem('dj_theme')||'dark');thB.addEventListener('click',()=>aT(bd.dataset.theme==='dark'?'light':'dark'));
+function bTk(){pT.innerHTML='';for(let i=0;i<N;i++){const t=document.createElement('div');t.className='pt-tick';t.dataset.i=i;t.style.left=((i+1)/N*100)+'%';pT.appendChild(t);}}bTk();
+function go(i){i=Math.max(0,Math.min(N-1,i));slides[i].scrollIntoView({behavior:'smooth',block:'start'});}
+function uUI(i){
+ac=i;const pc=N>1?((i+1)/N)*100:100;const m=meta[i];
+if(pF)pF.style.width=pc+'%';pT.querySelectorAll('.pt-tick').forEach(el=>{const t=+el.dataset.i;el.className='pt-tick'+(t===i?' active':t<i?' past':'');});
+if(tL)tL.innerHTML='<strong>'+m.sec+'</strong> · '+m.title;
+if(cP)cP.textContent=String(i+1).padStart(2,'0')+'/'+String(N).padStart(2,'0');
+if(cT)cT.textContent=m.sec+' · '+m.title;if(gI)gI.placeholder=i+1;
+if(tPF)tPF.style.width=pc+'%';if(tPI)tPI.innerHTML='Slide <b>'+(i+1)+'</b> / '+N+' — '+m.sec;
+tL2.querySelectorAll('.toc-row').forEach(el=>{const t=+el.dataset.i;el.classList.toggle('active',t===i);el.classList.toggle('done',t<i);});
+if(sF)sF.textContent=String(i+1).padStart(2,'0')+' / '+String(N).padStart(2,'0');if(sBF)sBF.style.width=pc+'%';
+sS.querySelectorAll('.suivi-sec').forEach(el=>{const s=el.dataset.sec;el.className='suivi-sec'+(s===m.sec?' active':sL(s)<i?' past':sF2(s)>i?' future':'');});
+}
+function bTC(f){const ft=(f||'').toLowerCase().trim();tL2.innerHTML='';secs.forEach(s=>{const it=meta.filter(m=>m.sec===s&&(!ft||m.title.toLowerCase().includes(ft)||m.sec.toLowerCase().includes(ft)));if(!it.length)return;const l=document.createElement('div');l.className='toc-sec-label';l.textContent=s;tL2.appendChild(l);it.forEach(x=>{const r=document.createElement('div');r.className='toc-row'+(x.i===ac?' active':x.i<ac?' done':'');r.dataset.i=x.i;r.innerHTML='<div class="toc-row-n">'+String(x.i+1).padStart(2,'0')+'</div><div class="toc-row-dot"></div><div class="toc-row-text">'+x.title+'</div>';r.addEventListener('click',()=>{go(x.i);if(window.innerWidth<900)sP2(false);});tL2.appendChild(r);});});}
+function bSv(){sS.innerHTML='';const m=meta[ac];secs.forEach((s,si)=>{const f=sF2(s),l=sL(s);const c=s===m.sec?'active':l<ac?'past':f>ac?'future':'';const e=document.createElement('div');e.className='suivi-sec'+(c?' '+c:'');e.dataset.sec=s;e.innerHTML='<div class="suivi-sec-n">'+String(si+1).padStart(2,'0')+'</div><div class="suivi-sec-name">'+s+'</div><div class="suivi-sec-pip"></div>';e.addEventListener('click',()=>{go(f);sSv(false);});sS.appendChild(e);});}
+function sP2(o){pO=o;tD.classList.toggle('open',o);tS.classList.toggle('show',o);pB.classList.toggle('active',o);if(o){bTC(tFI.value);tFI.focus();}}
+function sSv(o){sO=o;sP.classList.toggle('open',o);sB.classList.toggle('active',o);if(o)bSv();}
+pB.addEventListener('click',()=>sP2(!pO));sB.addEventListener('click',e=>{e.stopPropagation();sSv(!sO);});
+tCB.addEventListener('click',()=>sP2(false));tS.addEventListener('click',()=>sP2(false));tFI.addEventListener('input',()=>bTC(tFI.value));
+document.addEventListener('click',e=>{if(sO&&!sP.contains(e.target)&&e.target!==sB&&!sB.contains(e.target))sSv(false);});
+document.getElementById('progressTrack').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();go(Math.round((e.clientX-r.left)/r.width*(N-1)));});
+gI.addEventListener('keydown',e=>{if(e.key==='Enter'){const n=parseInt(gI.value,10);if(Number.isFinite(n))go(n-1);gI.value='';gI.blur();}});
+prB.addEventListener('click',()=>go(ac-1));nxB.addEventListener('click',()=>go(ac+1));
+window.addEventListener('keydown',e=>{const t=(e.target?.tagName||'').toLowerCase();if(t==='input'||t==='textarea')return;if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();go(ac+1);}if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(ac-1);}if(e.key==='Home'){e.preventDefault();go(0);}if(e.key==='End'){e.preventDefault();go(N-1);}if(e.key.toLowerCase()==='t'){e.preventDefault();sP2(!pO);}if(e.key.toLowerCase()==='s'){e.preventDefault();sSv(!sO);}if(e.key==='Escape'){sP2(false);sSv(false);}});
+const io=new IntersectionObserver(en=>{let b=null,bR=0;en.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>bR){bR=e.intersectionRatio;b=e.target;}});if(b){const i=slides.indexOf(b);if(i!==-1&&i!==ac)uUI(i);}en.forEach(e=>{if(e.isIntersecting){e.target.classList.add('active');requestAnimationFrame(()=>e.target.classList.add('seen'));}});},{root:deck,threshold:[.1,.3,.5,.7,.9]});
+slides.forEach(s=>io.observe(s));bTC();bSv();uUI(0);slides[0].classList.add('active','seen');
+
+/* ═══ PLOTLY ═══ */
+function wP(fn){window.Plotly?fn():setTimeout(()=>wP(fn),200);}
+function tc(){const d=bd.dataset.theme==='dark';return{c1:d?'#34d674':'#1a7f47',c2:d?'#4e9eff':'#1a6fd9',c3:'#d97706',red:d?'#f06060':'#c03030',grid:d?'rgba(255,255,255,.07)':'rgba(0,0,0,.06)',fc:d?'#ccc':'#2f2f2f',bg:'transparent',d};}
+const pc={responsive:true,displaylogo:false};
+function bL(x){const{grid,fc,bg}=tc();return Object.assign({paper_bgcolor:bg,plot_bgcolor:bg,font:{family:'Geist,system-ui,sans-serif',color:fc,size:11}},x);}
+function lcg(s){let x=s>>>0;return()=>{x=(Math.imul(1664525,x)+1013904223)>>>0;return x/0x100000000;};}
+function rn(g){return Math.sqrt(-2*Math.log(Math.max(g(),1e-12)))*Math.cos(2*Math.PI*g());}
+function gauss(x,mu,sig){return Math.exp(-.5*((x-mu)/sig)**2)/(sig*Math.sqrt(2*Math.PI));}
+
+function drawBootstrap(){const el=document.getElementById('plot-bootstrap');if(!el||!window.Plotly)return;const{c1,c2,grid}=tc();const ns=[.25,.5,1,2,3,5,7,10,15,20,30],ds=[.9988,.9952,.9615,.92,.882,.805,.738,.652,.53,.435,.28],lD=ds.map(d=>Math.log(d));function ip(x){if(x<=ns[0])return ds[0];if(x>=ns[ns.length-1])return ds[ds.length-1];let i=0;while(i<ns.length-1&&ns[i+1]<x)i++;const w=(x-ns[i])/(ns[i+1]-ns[i]);return Math.exp(lD[i]+w*(lD[i+1]-lD[i]));}const fT=[],fD=[];for(let t=.1;t<=30;t+=.2){fT.push(+t.toFixed(2));fD.push(ip(t));}
+var bsStep=0,bsTimer=null;
+function renderStep(k){var maxT=k<ns.length?ns[k]+.1:31;Plotly.react(el,[{x:fT.filter(function(t){return t<=maxT;}),y:fT.filter(function(t){return t<=maxT;}).map(ip),name:'P(0,T)',line:{width:3,color:c1}},{x:ns.slice(0,k+1),y:ds.slice(0,k+1),name:'Nœuds',mode:'markers',marker:{size:8,color:c2,symbol:'diamond'}}],bL({margin:{l:46,r:10,t:10,b:36},xaxis:{title:'Maturité (années)',gridcolor:grid,range:[0,31]},yaxis:{title:'P(0,T)',gridcolor:grid,range:[0,1.04]},legend:{x:.55,y:.95,bgcolor:'transparent',font:{size:10}}}),pc);}
+Plotly.newPlot(el,[{x:fT,y:fD,name:'P(0,T)',line:{width:3,color:c1}},{x:ns,y:ds,name:'Nœuds',mode:'markers',marker:{size:8,color:c2,symbol:'diamond'}}],bL({margin:{l:46,r:10,t:10,b:36},xaxis:{title:'Maturité (années)',gridcolor:grid,range:[0,31]},yaxis:{title:'P(0,T)',gridcolor:grid,range:[0,1.04]},legend:{x:.55,y:.95,bgcolor:'transparent',font:{size:10}}}),pc);
+el.on('plotly_click',function(){if(bsTimer){clearInterval(bsTimer);bsTimer=null;}bsStep=0;bsTimer=setInterval(function(){if(bsStep>=ns.length){clearInterval(bsTimer);bsTimer=null;return;}renderStep(bsStep);bsStep++;},350);});}
+
+function drawTheta(){const el=document.getElementById('plot-theta');if(!el||!window.Plotly)return;const{c1,c3,grid}=tc();const T=[];for(let t=.1;t<=15;t+=.1)T.push(+t.toFixed(1));const fwd=T.map(t=>3.2+.8*Math.log(1+t)-.02*t);const a=.03,sig=.0065;const th=T.map((t,i)=>{const df=i>0?(fwd[i]-fwd[i-1])/.1:0;return df+a*fwd[i]+sig*sig/(2*a)*(1-Math.exp(-2*a*t));});Plotly.newPlot(el,[{x:T,y:fwd,name:'f(0,t)',line:{width:2.5,color:c1}},{x:T,y:th.map(v=>v*100),name:'θ(t)×100',line:{width:2,color:c3,dash:'dash'}}],bL({margin:{l:50,r:10,t:10,b:36},xaxis:{title:'t (années)',gridcolor:grid},yaxis:{title:'%',gridcolor:grid},legend:{x:.5,y:.95,bgcolor:'transparent',font:{size:10}}}),pc);}
+
+function drawMR(){const el=document.getElementById('plot-mean-rev');if(!el||!window.Plotly)return;const{c1,c2,c3,grid}=tc();const T=[];for(let t=0;t<=20;t+=.1)T.push(+t.toFixed(1));const r0=6,rE=4;Plotly.newPlot(el,[{a:.02,c:c3,n:'a=0.02'},{a:.05,c:c2,n:'a=0.05'},{a:.15,c:c1,n:'a=0.15'}].map(({a,c,n})=>({x:T,y:T.map(t=>rE+(r0-rE)*Math.exp(-a*t)),name:n,line:{width:2.5,color:c}})).concat([{x:[0,20],y:[rE,rE],showlegend:false,line:{width:1.5,dash:'dot',color:tc().fc}}]),bL({margin:{l:50,r:10,t:10,b:36},xaxis:{title:'Années',gridcolor:grid},yaxis:{title:'r (%)',gridcolor:grid},legend:{x:.55,y:.95,bgcolor:'transparent',font:{size:10}}}),pc);}
+
+function drawSigma(){const el=document.getElementById('plot-sigma');if(!el||!window.Plotly)return;const{c1,c2,c3,grid}=tc();const a=.03,T=5,r0=4;const xV=[];for(let x=0;x<=8;x+=.05)xV.push(+x.toFixed(2));Plotly.newPlot(el,[{s:.005,c:c3,n:'σ=50pb'},{s:.0065,c:c2,n:'σ=65pb'},{s:.01,c:c1,n:'σ=100pb'}].map(({s,c,n})=>{const v=s/Math.sqrt(2*a)*Math.sqrt(1-Math.exp(-2*a*T));return{x:xV,y:xV.map(x=>gauss(x,r0,v*100)),name:n,line:{width:2.5,color:c},fill:'tozeroy',fillcolor:c.replace(')',',0.06)').replace('rgb','rgba')};}),bL({margin:{l:40,r:10,t:10,b:36},xaxis:{title:'r à T=5 ans (%)',gridcolor:grid},yaxis:{gridcolor:grid,showticklabels:false},legend:{x:.6,y:.96,bgcolor:'transparent',font:{size:10}}}),pc);}
+
+function drawVegaImpact(){const el=document.getElementById('plot-vega-impact');if(!el||!window.Plotly)return;const{c1,grid}=tc();const sigs=[40,50,60,65,70,80,90,100],vals=sigs.map(s=>10+s*1.08);Plotly.newPlot(el,[{x:sigs,y:vals,line:{width:3,color:c1},mode:'lines+markers',marker:{size:5}}],bL({margin:{l:50,r:10,t:8,b:36},xaxis:{title:'σ (pb/an)',gridcolor:grid},yaxis:{title:'Option ($)',gridcolor:grid},showlegend:false}),pc);}
+
+function drawASigma(){const el=document.getElementById('plot-a-sigma');if(!el||!window.Plotly)return;const{c1,c2,c3,grid}=tc();const aV=[];for(let a=.01;a<=.2;a+=.005)aV.push(+a.toFixed(3));Plotly.newPlot(el,[{s:50,c:c3,n:'σ=50pb'},{s:65,c:c2,n:'σ=65pb'},{s:100,c:c1,n:'σ=100pb'}].map(({s,c,n})=>({x:aV,y:aV.map(a=>20+s*s/(2*a)*.0012),name:n,line:{width:2.5,color:c}})),bL({margin:{l:50,r:10,t:10,b:36},xaxis:{title:'a',gridcolor:grid},yaxis:{title:'Option ($)',gridcolor:grid},legend:{x:.55,y:.95,bgcolor:'transparent',font:{size:10}}}),pc);}
+
+function drawPaths(){const el=document.getElementById('plot-paths');if(!el||!window.Plotly)return;const{c1,c3,grid}=tc();const NP=120,dt=10/NP,r0=.04,sig=.0065,a=.03;const t=Array.from({length:NP+1},(_,i)=>+(i*dt).toFixed(3));const fwd=t.map(x=>(.04+.003*Math.log(1+x))*100);const traces=[{x:t,y:fwd,name:'Forward',line:{width:2.5,color:c1}}];for(let p=0;p<20;p++){const g=lcg(42+p*17);const path=[r0];for(let i=0;i<NP;i++){const prev=path[path.length-1];path.push(prev+(r0*a-a*prev)*dt+sig*Math.sqrt(dt)*rn(g));}traces.push({x:t,y:path.map(v=>v*100),showlegend:false,line:{width:.7,color:c3},opacity:.35});}Plotly.newPlot(el,traces,bL({margin:{l:44,r:10,t:8,b:36},xaxis:{title:'Années',gridcolor:grid},yaxis:{title:'r (%)',gridcolor:grid},legend:{x:.7,y:.98,bgcolor:'transparent',font:{size:10}}}),pc);}
+
+function drawB(){const el=document.getElementById('plot-bfunc');if(!el||!window.Plotly)return;const{c1,c2,c3,grid}=tc();const T=[];for(let t=.1;t<=30;t+=.2)T.push(+t.toFixed(1));const B=(a,t)=>(1-Math.exp(-a*t))/a;Plotly.newPlot(el,[{x:T,y:T.map(t=>B(.03,t)),name:'a=0.03',line:{width:2.5,color:c1}},{x:T,y:T.map(t=>B(.05,t)),name:'a=0.05',line:{width:2,color:c2}},{x:T,y:T.map(t=>B(.15,t)),name:'a=0.15',line:{width:2,color:c3,dash:'dot'}}],bL({margin:{l:50,r:10,t:10,b:36},xaxis:{title:'T−t (années)',gridcolor:grid},yaxis:{title:'B(t,T)',gridcolor:grid},legend:{x:.55,y:.95,bgcolor:'transparent',font:{size:10}}}),pc);}
+
+function drawBoundary(){const el=document.getElementById('plot-boundary');if(!el||!window.Plotly)return;const{c1,c3,grid}=tc();const tex=[1,2,3,4,5,6,7,8,9],rS=tex.map(t=>4.2+.4*Math.exp(-.3*(t-1)));Plotly.newPlot(el,[{x:tex,y:rS,mode:'lines+markers',line:{width:3,color:c1},marker:{size:8},name:'r*(t)'},{x:[1,9],y:[5,5],line:{width:1.5,dash:'dot',color:c3},name:'Taux client'}],bL({margin:{l:50,r:14,t:10,b:40},xaxis:{title:'Année',gridcolor:grid,tickvals:tex},yaxis:{title:'r* (%)',gridcolor:grid},legend:{x:.5,y:.95,bgcolor:'transparent',font:{size:10}},annotations:[{x:3,y:3.8,text:'Prorogation',showarrow:false,font:{size:10,color:c1}},{x:7,y:5.6,text:'Remboursement',showarrow:false,font:{size:10,color:c3}}]}),pc);}
+
+function drawKR(){const el=document.getElementById('plot-krdv01');if(!el||!window.Plotly)return;const{c1,grid}=tc();const v=[.01,.02,.15,.45,.82,1.35,1.80,2.10,.95,.25,.05];Plotly.newPlot(el,[{x:['3M','6M','1A','2A','3A','5A','7A','10A','15A','20A','30A'],y:v,type:'bar',marker:{color:v.map(x=>'rgba(52,214,116,'+(0.25+.7*x/2.1)+')'),line:{color:c1,width:1}}}],bL({margin:{l:44,r:10,t:10,b:40},xaxis:{gridcolor:grid},yaxis:{title:'$/pb',gridcolor:grid},showlegend:false}),pc);}
+
+function drawDV01(){const el=document.getElementById('plot-dv01');if(!el||!window.Plotly)return;const{c1,grid}=tc();const b=[-50,-40,-30,-20,-10,0,10,20,30,40,50],va=b.map(x=>1105+x*7.2+x*x*.008);Plotly.newPlot(el,[{x:b,y:va,line:{width:3,color:c1}}],bL({margin:{l:50,r:10,t:10,b:36},xaxis:{title:'Bump OIS (pb)',gridcolor:grid},yaxis:{title:'VA ($)',gridcolor:grid},showlegend:false}),pc);}
+
+function drawInterp(){const el=document.getElementById('plot-interp');if(!el||!window.Plotly)return;const{c1,grid}=tc();const ns=[.25,.5,1,2,3,5,7,10,15,20,30],ds=[.9988,.9952,.9615,.92,.882,.805,.738,.652,.53,.435,.28],lD=ds.map(d=>Math.log(d));function logI(x){if(x<=ns[0])return ds[0];if(x>=ns[ns.length-1])return ds[ds.length-1];let i=0;while(i<ns.length-1&&ns[i+1]<x)i++;const w=(x-ns[i])/(ns[i+1]-ns[i]);return Math.exp(lD[i]+w*(lD[i+1]-lD[i]));}const fT=[];for(let t=.2;t<=29;t+=.15)fT.push(+t.toFixed(2));const dt2=.01;Plotly.newPlot(el,[{x:fT,y:fT.map(t=>{const p1=logI(t+dt2),p0=logI(t-dt2);return-(Math.log(p1)-Math.log(p0))/(2*dt2)*100;}),line:{width:2.5,color:c1}}],bL({margin:{l:50,r:10,t:10,b:36},xaxis:{title:'Maturité (années)',gridcolor:grid},yaxis:{title:'f(0,T) %',gridcolor:grid},showlegend:false}),pc);}
+
+function drawBach(){const el=document.getElementById('plot-bachelier');if(!el||!window.Plotly)return;const{c1,c2,c3,grid}=tc();const S0=3.5,sN=.80;const xV=[];for(let s=-1;s<=8;s+=.05)xV.push(+s.toFixed(3));Plotly.newPlot(el,[{T:1,c:c3,n:'1 an'},{T:3,c:c2,n:'3 ans'},{T:5,c:c1,n:'5 ans'}].map(({T,c,n})=>({x:xV,y:xV.map(s=>gauss(s,S0,sN*Math.sqrt(T))),name:n,line:{width:2.5,color:c},fill:'tozeroy',fillcolor:c.replace(')',',0.06)').replace('rgb','rgba')})),bL({margin:{l:40,r:10,t:10,b:36},xaxis:{title:'Taux (%)',gridcolor:grid},yaxis:{gridcolor:grid,showticklabels:false},legend:{x:.62,y:.96,bgcolor:'transparent',font:{size:10}}}),pc);}
+
+function drawTree(){const cv=document.getElementById('canvas-tree');if(!cv)return;const r=cv.getBoundingClientRect();cv.width=r.width*2;cv.height=r.height*2;const ctx=cv.getContext('2d');ctx.scale(2,2);const W=r.width,H=r.height,d=bd.dataset.theme==='dark';const cN=d?'#34d674':'#1a7f47',cE=d?'#f0b429':'#a67c00',cL=d?'rgba(255,255,255,.12)':'rgba(0,0,0,.10)',cTx=d?'rgba(255,255,255,.5)':'rgba(0,0,0,.4)';const st=7,nR=4,dx=W/(st+1),cy=H/2,dy=16;const ex=new Set([2,4,6]);ctx.clearRect(0,0,W,H);for(let t=0;t<=st;t++){const x=dx*(t+.5);for(let j=-t;j<=t;j++){const y=cy-j*dy;if(t<st){[-1,0,1].forEach(dj=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(dx*(t+1.5),cy-(j+dj)*dy);ctx.strokeStyle=cL;ctx.lineWidth=.8;ctx.stroke();});}ctx.beginPath();ctx.arc(x,y,nR,0,Math.PI*2);ctx.fillStyle=ex.has(t)?cE:cN;ctx.fill();}ctx.fillStyle=cTx;ctx.font='10px Geist,sans-serif';ctx.textAlign='center';ctx.fillText(t===0?'t₀':t===st?'T':'t'+t,dx*(t+.5),H-6);}}
+
+function drawAll(){drawBootstrap();drawTheta();drawMR();drawSigma();drawVegaImpact();drawASigma();drawPaths();drawB();drawBoundary();drawKR();drawDV01();drawInterp();drawBach();drawTree();}
+wP(drawAll);new MutationObserver(drawAll).observe(bd,{attributes:true,attributeFilter:['data-theme']});window.addEventListener('resize',drawTree);
+})();
+</script>
+</body>
+</html>

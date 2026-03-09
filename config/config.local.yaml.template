@@ -1,0 +1,13 @@
+# config/config.local.yaml — NE PAS COMMITTER (ajouté à .gitignore)
+# Credentials SQL pour accès à la courbe CDF.
+#
+# Option 1: connection string complète
+# sql:
+#   connection_string: "DRIVER={ODBC Driver 17 for SQL Server};SERVER=...;DATABASE=...;UID=...;PWD=..."
+#
+# Option 2: composants
+sql:
+  server: "VOTRE_SERVEUR"
+  database: "BD_ET_QRM_Staging"
+  driver: "ODBC Driver 17 for SQL Server"
+  trusted_connection: "yes"
